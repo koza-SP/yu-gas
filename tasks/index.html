@@ -128,6 +128,18 @@ form.add .acts { display: flex; justify-content: flex-end; gap: 8px; }
 }
 .linkish { border: 0; background: none; color: var(--accent); cursor: pointer; padding: 0; font: inherit; }
 form.add .acts .sp { flex: 1; }
+.qrow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 8px; }
+.qrow .ql { width: 52px; font-size: 12px; color: var(--muted); flex: none; }
+.endacts { margin-top: 12px; justify-content: flex-start; }
+.sortsel { font-size: 12px; color: var(--muted); white-space: nowrap; }
+.sortsel select { border: 1px solid var(--line); border-radius: 8px; padding: 3px 4px; background: var(--card); }
+.decide h4.dname { font-size: 18px; margin: 4px 0 8px; }
+tr.row[draggable="true"] { cursor: grab; }
+tr.row.dragging td { opacity: .4; }
+tr.row.drop-a td { box-shadow: inset 0 2px 0 var(--accent); }
+tr.row.drop-b td { box-shadow: inset 0 -2px 0 var(--accent); }
+.chip.show-n { display: none; }
+@media (max-width: 640px) { .chip.show-n { display: inline-flex; } .sortsel { order: 9; } }
 </style>
 </head>
 <body>
@@ -140,7 +152,11 @@ form.add .acts .sp { flex: 1; }
   'use strict';
   var WS = window.WS || {};
   var root = document.getElementById('app');
-  var VIEWS = ['すべて', '今日まで', '今週', '期限なし', '完了'];
+  var VIEWS = ['すべて', '今日まで', '今週', '期限なし', '完了', 'アーカイブ'];
+  var URG = ['急ぎ', '必須', 'できれば', '後で'];
+  var UR = { '急ぎ': 0, '必須': 1, 'できれば': 2, '後で': 3 };
+  var SORTS = ['おすすめ', '順番', '期限', '優先度', '緊急度', '会社', '新しい順'];
+  var SKIP = {};   // 「順に決める」で「あとで」にした物（この画面を開いている間だけ）
   var STATUSES = ['未着手', '進行中', '要相談', '保留', '完了'];
   var DONE = '完了';
   var PR = { '高': 0, '中': 1, '低': 2 };
@@ -159,17 +175,25 @@ form.add .acts .sp { flex: 1; }
 
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function loadF() {
-    var d = { view: 'すべて', off: {}, co: '' };
+    var d = { view: 'すべて', off: {}, co: '', sort: 'おすすめ' };
     try {
       var v = JSON.parse(localStorage.getItem('ws:tasks:f') || 'null');
       if (v && VIEWS.indexOf(v.view) >= 0) d.view = v.view;
       if (v && v.off && typeof v.off === 'object') d.off = v.off;
       if (v && typeof v.co === 'string') d.co = v.co;
+      if (v && SORTS.indexOf(v.sort) >= 0) d.sort = v.sort;
     } catch (e) { /* 覚えていなくても困らない */ }
     return d;
   }
   function keepF() { try { localStorage.setItem('ws:tasks:f', JSON.stringify(F)); } catch (e) { /* 覚えられなくても困らない */ } }
   function addDays(d, n) { var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d); return m ? new Date(Date.UTC(+m[1], +m[2] - 1, +m[3] + n)).toISOString().slice(0, 10) : d; }
+  function wdOf(d) { return (new Date(d + 'T00:00:00Z').getUTCDay() + 6) % 7; }   // 月曜 = 0
+  function eomOf(d) { return new Date(Date.UTC(+d.slice(0, 4), +d.slice(5, 7), 0)).toISOString().slice(0, 10); }
+  // 期限のボタン（「今週中」は金曜。土日なら次の金曜。表の「期限目処」の読み方と同じ決め）
+  function quickDues(today) {
+    var fri = addDays(today, (4 - wdOf(today) + 7) % 7), mon = addDays(today, 7 - wdOf(today));
+    return [['今日', today], ['明日', addDays(today, 1)], ['今週中', fri], ['来週中', addDays(mon, 4)], ['今月中', eomOf(today)]];
+  }
   function md(d) { var w = '日月火水木金土'[new Date(d + 'T00:00:00Z').getUTCDay()]; return (+d.slice(5, 7)) + '/' + (+d.slice(8, 10)) + '(' + w + ')'; }
   function rawDue(t) { var r = String(t.due_raw || '').trim(); return /^(-|ー|―|—)$/.test(r) ? '' : r; }   // 「-」は期限なし
   function short(s) { s = String(s || ''); return s.length > 24 ? s.slice(0, 23) + '…' : s; }
@@ -274,6 +298,8 @@ form.add .acts .sp { flex: 1; }
   // ---- 絞り込みと並べ方
   function isOpen(t) { return t.status !== DONE; }
   function inView(t, v, today) {
+    if (v === 'アーカイブ') return !!t.archived;
+    if (t.archived) return false;
     if (v === '完了') return !isOpen(t);
     if (!isOpen(t)) return false;
     if (v === '今日まで') return !!t.due && t.due <= today;
@@ -281,17 +307,24 @@ form.add .acts .sp { flex: 1; }
     if (v === '期限なし') return !t.due;
     return true;
   }
-  // 並び: 完了は新しい順。ほかは「順番」（表の上ほど先。Yu のスケジュールの並びを写した物）→ 期限 → 優先度
+  // 並び（並べ方を選べる）。おすすめ = 期限のある物は期限の近い順（同じ日なら 緊急度 → 優先度 → 順番）、期限の無い物は順番のまま
+  function ord(a, b) { var x = a.order == null ? 1e9 : a.order, y = b.order == null ? 1e9 : b.order; return x !== y ? x - y : String(a.name).localeCompare(String(b.name), 'ja'); }
+  function rank(m, v) { return m[v] == null ? 9 : m[v]; }
   function cmp(a, b) {
-    if (F.view === '完了') return String(b.updated || '').localeCompare(String(a.updated || ''));
-    var ao = a.order == null ? 1e9 : a.order, bo = b.order == null ? 1e9 : b.order;
-    if (ao !== bo) return ao - bo;
-    var ad = a.due || '9999', bd = b.due || '9999';
-    if (ad !== bd) return ad < bd ? -1 : 1;
-    var ap = PR[a.priority] == null ? 3 : PR[a.priority], bp = PR[b.priority] == null ? 3 : PR[b.priority];
-    if (ap !== bp) return ap - bp;
-    return String(a.name).localeCompare(String(b.name), 'ja');
+    if (F.view === '完了' || F.view === 'アーカイブ' || F.sort === '新しい順') return String(b.updated || '').localeCompare(String(a.updated || ''));
+    var ad = a.due || '9999', bd = b.due || '9999', r = 0;
+    if (F.sort === '順番') return ord(a, b);
+    if (F.sort === '期限') r = ad < bd ? -1 : ad > bd ? 1 : 0;
+    else if (F.sort === '優先度') r = rank(PR, a.priority) - rank(PR, b.priority);
+    else if (F.sort === '緊急度') r = rank(UR, a.urgency) - rank(UR, b.urgency);
+    else if (F.sort === '会社') r = a.company && !b.company ? -1 : !a.company && b.company ? 1 : String(a.company || '').localeCompare(String(b.company || ''), 'ja');
+    else {   // おすすめ
+      r = ad < bd ? -1 : ad > bd ? 1 : 0;
+      if (!r && a.due) r = rank(UR, a.urgency) - rank(UR, b.urgency) || rank(PR, a.priority) - rank(PR, b.priority);
+    }
+    return r || ord(a, b);
   }
+  function canDrag() { return F.sort === '順番' && F.view !== '完了' && F.view !== 'アーカイブ'; }
   function srcOf(key) { return ((D && D.sources) || []).filter(function (s) { return s.key === key; })[0] || null; }
   function isTeam(t) { return t.src !== 'mine'; }
   function coOf(t) { return t.company || NOCO; }
@@ -332,7 +365,10 @@ form.add .acts .sp { flex: 1; }
     var chips = order.length > 1 || F.co ? order.map(function (c) {
       return '<button class="fchip' + (F.co === c ? ' on' : '') + '" type="button" data-co="' + esc(c) + '" aria-pressed="' + (F.co === c ? 'true' : 'false') + '">' + esc(c) + ' ' + (counts[c] || 0) + '</button>';
     }).join('') : '';
-    return '<div class="bar"><div class="tabs" role="tablist">' + tabs + '</div><span class="sp"></span><div class="chips">' + chips + '</div></div>';
+    var sortSel = '<label class="sortsel">並べ方 <select data-sort aria-label="並べ方">' + SORTS.map(function (x) { return '<option' + (x === F.sort ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select></label>';
+    var extra = F.view === '期限なし' ? '<button class="btn small" type="button" data-decide>期限を順に決める</button>'
+      : F.view === '完了' ? '<button class="btn small" type="button" data-archivedone>完了をまとめてアーカイブ</button>' : '';
+    return '<div class="bar"><div class="tabs" role="tablist">' + tabs + '</div><span class="sp"></span>' + extra + sortSel + '<div class="chips">' + chips + '</div></div>';
   }
   function meta() {
     if (!D) return '';
@@ -352,7 +388,7 @@ form.add .acts .sp { flex: 1; }
   }
   function table(rows, today) {
     if (!D) return ERR ? '<div class="empty">読み込めませんでした。</div>' : '<div class="empty"><div class="spinner"></div>読み込んでいます…</div>';
-    if (!rows.length) return '<div class="empty">' + (F.view === '完了' ? '完了したタスクはありません。' : 'ありません。') + '</div>';
+    if (!rows.length) return '<div class="empty">' + (F.view === '完了' ? '完了したタスクはありません。' : F.view === 'アーカイブ' ? 'アーカイブした物はありません。' : 'ありません。') + '</div>';
     return '<table><thead><tr><th class="st-h">状態</th><th>タスク</th><th class="hide-n">優先</th><th>期限</th></tr></thead><tbody>' + rows.map(function (t) {
       var sub = [chipOf(t)];
       if (t.category) sub.push('<span>' + esc(t.category) + '</span>');
@@ -360,10 +396,13 @@ form.add .acts .sp { flex: 1; }
       if (!isTeam(t) && t.origin && t.origin !== '画面') sub.push('<span>' + esc(t.origin) + (/^(LINE|声)$/.test(t.origin) ? ' で頼んだ' : ' から') + '</span>');
       if (t.assignee) sub.push('<span>' + esc(short(t.assignee)) + '</span>');
       if (t.bad) sub.push('<span class="chip warn">' + esc(t.bad) + '</span>');
+      if (t.urgency) sub.push('<span class="chip show-n ' + (t.urgency === '急ぎ' ? 'bad' : t.urgency === '必須' ? 'warn' : '') + '">' + esc(t.urgency) + '</span>');
       var stripe = t.color ? ' style="box-shadow: inset 4px 0 0 ' + esc(t.color) + '"' : '';
-      return '<tr class="row' + (SEL === t.key ? ' sel' : '') + (isOpen(t) ? '' : ' done') + '" data-key="' + esc(t.key) + '"><td' + stripe + '>' + stCell(t) + '</td>' +
+      var drag = canDrag() && !isTeam(t) ? ' draggable="true"' : '';
+      return '<tr class="row' + (SEL === t.key ? ' sel' : '') + (isOpen(t) ? '' : ' done') + '" data-key="' + esc(t.key) + '"' + drag + '><td' + stripe + '>' + stCell(t) + '</td>' +
         '<td><span class="ttl">' + esc(t.name) + '</span><span class="sub">' + sub.join('') + '</span></td>' +
-        '<td class="hide-n">' + (t.priority ? '<span class="chip ' + (t.priority === '高' ? 'bad' : t.priority === '中' ? 'warn' : '') + '">' + esc(t.priority) + '</span>' : '') + '</td>' +
+        '<td class="hide-n">' + (t.priority ? '<span class="chip ' + (t.priority === '高' ? 'bad' : t.priority === '中' ? 'warn' : '') + '">' + esc(t.priority) + '</span>' : '') +
+        (t.urgency ? ' <span class="chip ' + (t.urgency === '急ぎ' ? 'bad' : t.urgency === '必須' ? 'warn' : '') + '">' + esc(t.urgency) + '</span>' : '') + '</td>' +
         dueCell(t, today) + '</tr>';
     }).join('') + '</tbody></table>';
   }
@@ -383,12 +422,38 @@ form.add .acts .sp { flex: 1; }
       '<label>タスク名<input name="name" required maxlength="200" value="' + esc(t.name) + '"></label>' +
       '<div class="two"><label>会社<input name="company" list="coList" maxlength="40" value="' + esc(t.company || '') + '" placeholder="例: ぱんどら"></label>' +
       '<label>優先度<select name="priority">' + pr + '</select></label></div>' +
-      '<div class="two"><label>期限<input name="due" type="date" value="' + esc(t.due || '') + '"></label>' +
-      '<label>順番<input name="order" inputmode="decimal" value="' + (t.order == null ? '' : esc(t.order)) + '" placeholder="小さいほど上"></label></div>' +
+      '<div class="two"><label>緊急度<select name="urgency">' + [''].concat(URG).map(function (x) { return '<option value="' + x + '"' + (x === (t.urgency || '') ? ' selected' : '') + '>' + (x || '—') + '</option>'; }).join('') + '</select></label>' +
+      '<label>期限<input name="due" type="date" value="' + esc(t.due || '') + '"></label></div><div class="two">' +
+      '<label>順番<input name="order" inputmode="decimal" value="' + (t.order == null ? '' : esc(t.order)) + '" placeholder="小さいほど上"></label><span></span></div>' +
       '<label>詳細<textarea name="detail" rows="3" maxlength="2000">' + esc(t.detail || '') + '</textarea></label>' +
       '<label>メモ<textarea name="memo" rows="2" maxlength="2000">' + esc(t.memo || '') + '</textarea></label>' +
       '<div class="acts"><button class="btn small" type="button" data-move="up" title="1 つ上へ">↑ 上へ</button><button class="btn small" type="button" data-move="down" title="1 つ下へ">↓ 下へ</button>' +
       '<span class="sp"></span><button class="btn pri" type="submit"' + (BUSY[t.key] ? ' disabled' : '') + '>直す</button></div></form>' + coList();
+  }
+  function quickRows(t, today) {
+    var due = quickDues(today).map(function (q) { return '<button class="btn small' + (t.due === q[1] ? ' on' : '') + '" type="button" data-due="' + q[1] + '" title="' + md(q[1]) + '">' + q[0] + '</button>'; }).join('') +
+      (t.due ? '<button class="btn small" type="button" data-due="">期限なしにする</button>' : '');
+    var pr = ['高', '中', '低'].map(function (x) { return '<button class="btn small' + (t.priority === x ? ' on' : '') + '" type="button" data-pri="' + x + '">' + x + '</button>'; }).join('');
+    var ur = URG.map(function (x) { return '<button class="btn small' + (t.urgency === x ? ' on' : '') + '" type="button" data-urg="' + x + '">' + x + '</button>'; }).join('');
+    return '<div class="qrow"><span class="ql">期限</span>' + due + '</div><div class="qrow"><span class="ql">優先度</span>' + pr + '</div><div class="qrow"><span class="ql">緊急度</span>' + ur + '</div>';
+  }
+  function endActs(t) {
+    var armed = ARM === 'del|' + t.key;
+    return '<div class="acts endacts">' + (t.archived ? '<button class="btn small" type="button" data-unarchive>アーカイブから戻す</button>' : '<button class="btn small" type="button" data-archive>アーカイブ</button>') +
+      '<button class="btn small' + (armed ? ' danger' : '') + '" type="button" data-remove>' + (armed ? 'もう一度押すと削除（表の「ゴミ箱」へ）' : '削除') + '</button></div>';
+  }
+  // 期限を順に決める: 期限の無い未完了を、順番の上から 1 件ずつ
+  function nextUndecided() {
+    return ((D && D.tasks) || []).filter(function (t) { return !isTeam(t) && isOpen(t) && !t.archived && !t.due && !SKIP[t.key] && (!F.co || coOf(t) === F.co); }).sort(ord);
+  }
+  function decideCard(today) {
+    var left = nextUndecided(), t = left[0];
+    var head = '<aside class="drawer" aria-label="期限を順に決める"><div class="dh"><div class="x"><h4>期限を順に決める</h4><div class="hint">残り ' + left.length + ' 件。期限を押すと次へ進みます</div></div>' +
+      '<button class="icon-btn" type="button" data-close aria-label="閉じる">' + I_CLOSE + '</button></div>';
+    if (!t) return head + '<div class="empty">期限の無いタスクは、もうありません。</div></aside>';
+    return head + '<div class="decide" data-key="' + esc(t.key) + '"><div class="sub">' + chipOf(t) + ' <span>' + esc(t.no) + '</span></div><h4 class="dname">' + esc(t.name) + '</h4>' +
+      (t.detail ? '<p class="hint">' + esc(t.detail.slice(0, 120)) + '</p>' : '') + quickRows(t, today) +
+      '<div class="acts"><button class="btn small" type="button" data-skip>あとで</button><button class="btn small" type="button" data-skip="keep">期限なしのまま</button></div></div></aside>';
   }
   function drawer(t, today) {
     var btns = STATUSES.map(function (x) {
@@ -406,7 +471,7 @@ form.add .acts .sp { flex: 1; }
       '<button class="icon-btn" type="button" data-close aria-label="閉じる">' + I_CLOSE + '</button></div>' +
       '<div class="stbtns">' + btns + '</div>' +
       (t.bad ? '<div class="hint" style="color:var(--warn)">' + esc(t.bad) + '（表で T-012 のような形に直すと、カレンダーの予実とつながります）</div>' : '') +
-      (isTeam(t) ? '' : editForm(t)) +
+      (isTeam(t) ? '' : quickRows(t, today) + editForm(t) + endActs(t)) +
       '<dl class="dl" style="margin-top:12px">' + dl.filter(function (x) { return x[1]; }).map(function (x) { return '<dt>' + esc(x[0]) + '</dt><dd>' + esc(x[1]) + '</dd>'; }).join('') +
       (links ? '<dt>リンク</dt><dd>' + links + '</dd>' : '') + '</dl>' +
       '<div style="margin-top:12px">' + rowLink(t) + '</div></aside>';
@@ -436,17 +501,17 @@ form.add .acts .sp { flex: 1; }
     var f = document.getElementById('addForm'), keepV = null, focus = null;
     if (f) { keepV = {}; ['name', 'company', 'due', 'priority', 'detail'].forEach(function (n) { if (f[n]) keepV[n] = f[n].value; }); if (document.activeElement && document.activeElement.form === f) focus = document.activeElement.name; }
     var ef = document.getElementById('editForm'), keepE = null;
-    if (ef && ef.dataset.dirty === '1') { keepE = { key: ef.dataset.key }; ['name', 'company', 'priority', 'due', 'order', 'detail', 'memo'].forEach(function (n) { keepE[n] = ef[n].value; }); }
+    if (ef && ef.dataset.dirty === '1') { keepE = { key: ef.dataset.key }; ['name', 'company', 'priority', 'urgency', 'due', 'order', 'detail', 'memo'].forEach(function (n) { if (ef[n]) keepE[n] = ef[n].value; }); }
     var today = D ? D.today : new Date().toISOString().slice(0, 10);
     var all = D ? D.tasks : [];
     var shown = all.filter(function (t) { return !F.off[t.src] && (!F.co || coOf(t) === F.co); });
     var rows = shown.filter(function (t) { return inView(t, F.view, today); }).sort(cmp);
-    var sel = SEL && SEL !== '__new__' ? all.filter(function (t) { return t.key === SEL; })[0] : null;
-    if (SEL && SEL !== '__new__' && D && !sel) SEL = null;
-    var open = SEL === '__new__' || !!sel;
+    var sel = SEL && SEL !== '__new__' && SEL !== '__decide__' ? all.filter(function (t) { return t.key === SEL; })[0] : null;
+    if (SEL && SEL !== '__new__' && SEL !== '__decide__' && D && !sel) SEL = null;
+    var open = SEL === '__new__' || SEL === '__decide__' || !!sel;
     root.innerHTML = top() + '<main class="wrap">' + notices() + (D ? bar(shown, today) + meta() : '') +
       '<div class="split' + (open ? ' open' : '') + '"><div class="card">' + table(rows, today) + '</div>' +
-      (SEL === '__new__' ? addForm() : sel ? drawer(sel, today) : '') + '</div>' + foot() + '</main>' + (open ? '<div class="scrim" data-close></div>' : '');
+      (SEL === '__new__' ? addForm() : SEL === '__decide__' ? decideCard(today) : sel ? drawer(sel, today) : '') + '</div>' + foot() + '</main>' + (open ? '<div class="scrim" data-close></div>' : '');
     f = document.getElementById('addForm');
     if (f && keepV) { Object.keys(keepV).forEach(function (n) { if (f[n]) f[n].value = keepV[n]; }); if (focus && f[focus]) f[focus].focus(); }
     ef = document.getElementById('editForm');   // 直しかけの中身は、描き直しても残す
@@ -473,9 +538,9 @@ form.add .acts .sp { flex: 1; }
   function editTask(f) {
     var t = taskOf(f.dataset.key);
     if (!t || BUSY[t.key]) return;
-    var v = { name: f.name.value.replace(/\s+/g, ' ').trim(), company: f.company.value.trim(), priority: f.priority.value, due: f.due.value, order: f.order.value.trim(), detail: f.detail.value.trim(), memo: f.memo.value.trim() };
+    var v = { name: f.name.value.replace(/\s+/g, ' ').trim(), company: f.company.value.trim(), priority: f.priority.value, urgency: f.urgency ? f.urgency.value : (t.urgency || ''), due: f.due.value, order: f.order.value.trim(), detail: f.detail.value.trim(), memo: f.memo.value.trim() };
     if (!v.name) { f.name.focus(); return; }
-    var was = { name: t.name, company: t.company || '', priority: t.priority || '', due: t.due || '', order: t.order == null ? '' : String(t.order), detail: t.detail || '', memo: t.memo || '' };
+    var was = { name: t.name, company: t.company || '', priority: t.priority || '', urgency: t.urgency || '', due: t.due || '', order: t.order == null ? '' : String(t.order), detail: t.detail || '', memo: t.memo || '' };
     var fields = {};
     Object.keys(v).forEach(function (k) { if (v[k] !== was[k]) fields[k] = v[k]; });
     if (!Object.keys(fields).length) { toast('変わった所はありません'); return; }
@@ -490,6 +555,55 @@ form.add .acts .sp { flex: 1; }
       if (e && e.code === 'forbidden' && !WS.mock) { relogin('ログインの期限が切れました。もう一度ログインしてください。'); return; }
       toast((e && e.message) || '直せませんでした', true);
     }).then(function () { delete BUSY[t.key]; if (root.querySelector('.wrap')) render(); });
+  }
+  // ボタン 1 つで直す（期限・優先度・緊急度・順番）
+  function quickUpdate(t, fields, msg) {
+    if (!t || BUSY[t.key]) return;
+    BUSY[t.key] = true; render();
+    Backend.call('task.update', { no: t.no, fields: fields }).then(function (d) {
+      var key = t.key;
+      if (d && d.task) { for (var k in d.task) if (Object.prototype.hasOwnProperty.call(d.task, k)) t[k] = d.task[k]; }
+      t.key = key;
+      if (msg) toast(msg);
+    }, function (e) {
+      if (e && e.code === 'forbidden' && !WS.mock) { relogin('ログインの期限が切れました。もう一度ログインしてください。'); return; }
+      toast((e && e.message) || '直せませんでした', true);
+    }).then(function () { delete BUSY[t.key]; if (root.querySelector('.wrap')) render(); });
+  }
+  function archiveTask(t, on) {
+    if (!t || BUSY[t.key]) return;
+    BUSY[t.key] = true; render();
+    Backend.call('task.archive', { no: t.no, on: on }).then(function (d) {
+      t.archived = d && d.task ? d.task.archived : (on ? D.today : ''); SEL = null;
+      toast(on ? '「' + short(t.name) + '」をアーカイブしました（「アーカイブ」で見られます）' : '「' + short(t.name) + '」を戻しました');
+    }, function (e) { toast((e && e.message) || 'できませんでした', true); }).then(function () { delete BUSY[t.key]; render(); });
+  }
+  function removeTask(t) {
+    if (!t || BUSY[t.key]) return;
+    if (ARM !== 'del|' + t.key) { ARM = 'del|' + t.key; render(); return; }
+    ARM = ''; BUSY[t.key] = true; render();
+    Backend.call('task.remove', { no: t.no, name: t.name }).then(function () {
+      SEL = null; toast('「' + short(t.name) + '」を削除しました（表の「ゴミ箱」のタブに残っています）');
+      delete BUSY[t.key]; refresh();
+    }, function (e) { delete BUSY[t.key]; toast((e && e.message) || '削除できませんでした', true); if (e && (e.code === 'moved' || e.code === 'gone')) refresh(); else render(); });
+  }
+  function archiveDone() {
+    Backend.call('task.archiveDone').then(function (d) { toast((d && d.archived) ? d.archived + ' 件をアーカイブしました' : 'アーカイブする物はありません'); refresh(); },
+      function (e) { toast((e && e.message) || 'できませんでした', true); });
+  }
+  // つかんで動かす: 落とした所の上と下の順番のあいだの数にする（ほかの行は書き換えない）
+  var DRAG = null;
+  function dropOrder(key, targetKey, after) {
+    var rows = Array.prototype.map.call(root.querySelectorAll('tr.row[draggable]'), function (r) { return taskOf(r.getAttribute('data-key')); }).filter(Boolean);
+    var t = taskOf(key), list = rows.filter(function (x) { return x.key !== key; }), i = -1;
+    list.forEach(function (x, k) { if (x.key === targetKey) i = k; });
+    if (!t || i < 0) return;
+    var at = after ? i + 1 : i, prev = list[at - 1], next = list[at];
+    var po = prev ? (prev.order == null ? null : prev.order) : null, no = next ? (next.order == null ? null : next.order) : null;
+    var v = po != null && no != null ? (po + no) / 2 : po != null ? po + 1 : no != null ? no - 1 : 1;
+    v = Math.round(v * 1000) / 1000;
+    if (t.order === v) return;
+    quickUpdate(t, { order: v }, '「' + short(t.name) + '」を動かしました');
   }
   function moveTask(t, dir) {
     if (!t || BUSY[t.key]) return;
@@ -531,6 +645,16 @@ form.add .acts .sp { flex: 1; }
     if (el.matches('[data-src]')) { var k = el.getAttribute('data-src'); if (F.off[k]) delete F.off[k]; else F.off[k] = true; keepF(); render(); return; }
     if (el.matches('[data-co]')) { var c = el.getAttribute('data-co'); F.co = F.co === c ? '' : c; keepF(); render(); return; }
     if (el.matches('[data-move]')) return moveTask(taskOf(SEL), el.getAttribute('data-move'));
+    var cur = el.closest('.decide') ? taskOf(el.closest('.decide').getAttribute('data-key')) : taskOf(SEL);
+    if (el.matches('[data-due]')) { var dv = el.getAttribute('data-due'); return quickUpdate(cur, { due: dv }, dv ? '「' + short(cur.name) + '」の期限を ' + md(dv) + ' にしました' : '期限なしにしました'); }
+    if (el.matches('[data-pri]')) { var pv = el.getAttribute('data-pri'); return quickUpdate(cur, { priority: cur.priority === pv ? '' : pv }); }
+    if (el.matches('[data-urg]')) { var uv = el.getAttribute('data-urg'); return quickUpdate(cur, { urgency: cur.urgency === uv ? '' : uv }); }
+    if (el.matches('[data-skip]')) { if (cur) SKIP[cur.key] = true; render(); return; }
+    if (el.matches('[data-decide]')) { SEL = '__decide__'; SKIP = {}; ARM = ''; render(); return; }
+    if (el.matches('[data-archivedone]')) return archiveDone();
+    if (el.matches('[data-archive]')) return archiveTask(taskOf(SEL), true);
+    if (el.matches('[data-unarchive]')) return archiveTask(taskOf(SEL), false);
+    if (el.matches('[data-remove]')) return removeTask(taskOf(SEL));
     if (el.matches('[data-setup]')) return setup(el);
     if (el.matches('[data-logout]')) { relogin('ログアウトしました。'); return; }
     if (el.matches('[data-setst]')) {
@@ -542,6 +666,7 @@ form.add .acts .sp { flex: 1; }
     if (el.matches('tr.row')) { if (e.target.closest('select, a')) return; SEL = el.getAttribute('data-key'); ARM = ''; render(); }
   });
   document.addEventListener('change', function (e) {
+    if (e.target.matches('select[data-sort]')) { F.sort = e.target.value; keepF(); render(); return; }
     var s = e.target.closest('select[data-st]');
     if (s) setStatus(taskOf(s.getAttribute('data-st')), s.value, false);
   });
@@ -550,6 +675,10 @@ form.add .acts .sp { flex: 1; }
     if (e.target.id === 'editForm') { e.preventDefault(); editTask(e.target); }
   });
   document.addEventListener('input', function (e) { var f = e.target.form; if (f && f.id === 'editForm') f.dataset.dirty = '1'; });
+  document.addEventListener('dragstart', function (e) { var r = e.target.closest && e.target.closest('tr.row[draggable]'); if (!r) return; DRAG = r.getAttribute('data-key'); e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', DRAG); } catch (x) { /* 古いブラウザ */ } r.classList.add('dragging'); });
+  document.addEventListener('dragover', function (e) { var r = e.target.closest && e.target.closest('tr.row[draggable]'); if (!r || !DRAG) return; e.preventDefault(); root.querySelectorAll('.drop-a, .drop-b').forEach(function (x) { x.classList.remove('drop-a', 'drop-b'); }); var b = r.getBoundingClientRect(); r.classList.add(e.clientY > b.top + b.height / 2 ? 'drop-b' : 'drop-a'); });
+  document.addEventListener('drop', function (e) { var r = e.target.closest && e.target.closest('tr.row[draggable]'); if (!r || !DRAG) return; e.preventDefault(); var after = r.classList.contains('drop-b'), key = DRAG; DRAG = null; if (r.getAttribute('data-key') !== key) dropOrder(key, r.getAttribute('data-key'), after); else render(); });
+  document.addEventListener('dragend', function () { DRAG = null; root.querySelectorAll('.drop-a, .drop-b, .dragging').forEach(function (x) { x.classList.remove('drop-a', 'drop-b', 'dragging'); }); });
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && SEL && !e.isComposing) { SEL = null; ARM = ''; render(); }
   });

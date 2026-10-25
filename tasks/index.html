@@ -126,13 +126,15 @@ form.add .acts { display: flex; justify-content: flex-end; gap: 8px; }
   td { padding: 8px 8px; }
   select.st { font-size: 13px; padding: 3px 2px; }
 }
+.linkish { border: 0; background: none; color: var(--accent); cursor: pointer; padding: 0; font: inherit; }
+form.add .acts .sp { flex: 1; }
 </style>
 </head>
 <body>
 <div id="app"><div class="empty"><div class="spinner"></div>読み込んでいます…</div></div>
 <script>window.WS = {"exec":"https://script.google.com/macros/s/AKfycbzkIJgwCx5b77F7wEeX54Cpz3UbMswZR8y5xA4OXPmxzkFMo35asTgQHH4i0yaVba5Y/exec","clientId":"1083278827563-i4i5ahf5rkk0lhn35juvc6j8tejapifs.apps.googleusercontent.com","calendar":"/calendar/"};</script>
 <script>// workspace のタスクのページ（https://workspace.glowball-ec.com/tasks/）。
-// GAS の窓口（task.*）を呼んで、Yu の表と香西分を 1 つの一覧に出す。その場で状態を変える・足す。
+// GAS の窓口（task.*）を呼んで、Yu のタスク表（会社ごとの仕事を 1 枚に）を出す。その場で状態を変える・足す・直す・並べ替える。
 // 見た目と動きはマイエージェントのタスクのページ（hub/voice/web/index.html）に合わせた。ログインはカレンダーと同じ「Google でログイン」。
 (function () {
   'use strict';
@@ -153,11 +155,17 @@ form.add .acts { display: flex; justify-content: flex-end; gap: 8px; }
   var BUSY = {};
   var LOADING = false, LAST = 0;
   var F = loadF();
+  var NOCO = '（会社なし）';
 
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function loadF() {
-    var d = { view: 'すべて', off: {} };
-    try { var v = JSON.parse(localStorage.getItem('ws:tasks:f') || 'null'); if (v && VIEWS.indexOf(v.view) >= 0) d.view = v.view; if (v && v.off && typeof v.off === 'object') d.off = v.off; } catch (e) { /* 覚えていなくても困らない */ }
+    var d = { view: 'すべて', off: {}, co: '' };
+    try {
+      var v = JSON.parse(localStorage.getItem('ws:tasks:f') || 'null');
+      if (v && VIEWS.indexOf(v.view) >= 0) d.view = v.view;
+      if (v && v.off && typeof v.off === 'object') d.off = v.off;
+      if (v && typeof v.co === 'string') d.co = v.co;
+    } catch (e) { /* 覚えていなくても困らない */ }
     return d;
   }
   function keepF() { try { localStorage.setItem('ws:tasks:f', JSON.stringify(F)); } catch (e) { /* 覚えられなくても困らない */ } }
@@ -273,8 +281,11 @@ form.add .acts { display: flex; justify-content: flex-end; gap: 8px; }
     if (v === '期限なし') return !t.due;
     return true;
   }
+  // 並び: 完了は新しい順。ほかは「順番」（表の上ほど先。Yu のスケジュールの並びを写した物）→ 期限 → 優先度
   function cmp(a, b) {
     if (F.view === '完了') return String(b.updated || '').localeCompare(String(a.updated || ''));
+    var ao = a.order == null ? 1e9 : a.order, bo = b.order == null ? 1e9 : b.order;
+    if (ao !== bo) return ao - bo;
     var ad = a.due || '9999', bd = b.due || '9999';
     if (ad !== bd) return ad < bd ? -1 : 1;
     var ap = PR[a.priority] == null ? 3 : PR[a.priority], bp = PR[b.priority] == null ? 3 : PR[b.priority];
@@ -283,7 +294,8 @@ form.add .acts { display: flex; justify-content: flex-end; gap: 8px; }
   }
   function srcOf(key) { return ((D && D.sources) || []).filter(function (s) { return s.key === key; })[0] || null; }
   function isTeam(t) { return t.src !== 'mine'; }
-  function chipOf(t) { return '<span class="chip ' + (isTeam(t) ? 'team' : 'mine') + '">' + esc(t.tab || (isTeam(t) ? '香西分' : 'Yu のタスク')) + '</span>'; }
+  function coOf(t) { return t.company || NOCO; }
+  function chipOf(t) { return isTeam(t) ? '<span class="chip team">' + esc(t.tab || '') + '</span>' : (t.company ? '<span class="chip mine">' + esc(t.company) + '</span>' : ''); }
 
   // ---- 画面
   function top() {
@@ -298,7 +310,7 @@ form.add .acts { display: flex; justify-content: flex-end; gap: 8px; }
     ((D && D.sources) || []).forEach(function (s) {
       if (s.ok) return;
       if (s.key === 'mine' && s.code === 'no_mine') {
-        out += '<div class="notice"><h3>Yu のタスク表がまだありません</h3><p>作ると、ここで足したタスクと、LINE や声でマイエージェントに頼んだタスクが入ります。Yu さんのドライブに「Yu のタスク」という表が 1 枚でき、誰とも共有しません。</p><button class="btn pri small" type="button" data-setup>表を作る</button></div>';
+        out += '<div class="notice"><h3>Yu のタスク表が、まだつながっていません</h3><p>表は Yu さんのマイドライブの「00_個人契約フォルダ」に作ってつなぎます（マイエージェントに頼んでください）。つながると、ここで足したタスクと、LINE や声でマイエージェントに頼んだタスクが入ります。</p></div>';
       } else if (s.code === 'auth') {
         out += '<div class="notice warn"><h3>スプレッドシートを使う許可がまだです</h3><p>' + esc(s.name) + 'を読むには、カレンダーの GAS のエディタで setup を 1 回実行して、許可を押してください。</p></div>';
       } else {
@@ -312,14 +324,20 @@ form.add .acts { display: flex; justify-content: flex-end; gap: 8px; }
       var n = shown.filter(function (t) { return inView(t, v, today); }).length;
       return '<button class="tab' + (F.view === v ? ' on' : '') + '" type="button" data-view="' + esc(v) + '">' + esc(v) + '<span class="n">' + n + '</span></button>';
     }).join('');
-    var chips = ((D && D.sources) || []).filter(function (s) { return s.ok; }).map(function (s) {
-      return '<button class="fchip' + (F.off[s.key] ? '' : ' on') + '" type="button" data-src="' + esc(s.key) + '" aria-pressed="' + (F.off[s.key] ? 'false' : 'true') + '">' + esc(s.name) + ' ' + s.count + '</button>';
-    }).join('');
+    // 会社で絞る（今の形で出ている物の会社。押すとその会社だけ、もう一度押すと全部）
+    var counts = {}, order = [];
+    shown.filter(function (t) { return inView(t, F.view, today); }).forEach(function (t) { var c = coOf(t); if (!(c in counts)) { counts[c] = 0; order.push(c); } counts[c]++; });
+    order.sort(function (a, b) { return a === NOCO ? 1 : b === NOCO ? -1 : counts[b] - counts[a]; });
+    if (F.co && !(F.co in counts)) order.push(F.co);
+    var chips = order.length > 1 || F.co ? order.map(function (c) {
+      return '<button class="fchip' + (F.co === c ? ' on' : '') + '" type="button" data-co="' + esc(c) + '" aria-pressed="' + (F.co === c ? 'true' : 'false') + '">' + esc(c) + ' ' + (counts[c] || 0) + '</button>';
+    }).join('') : '';
     return '<div class="bar"><div class="tabs" role="tablist">' + tabs + '</div><span class="sp"></span><div class="chips">' + chips + '</div></div>';
   }
   function meta() {
     if (!D) return '';
     var parts = (D.sources || []).filter(function (s) { return s.ok; }).map(function (s) { return esc(s.name) + ' <a href="' + esc(s.url) + '" target="_blank" rel="noopener">表を開く</a>'; });
+    if (F.co) parts.unshift('会社: ' + esc(F.co) + ' <button class="linkish" type="button" data-co="' + esc(F.co) + '">全部に戻す</button>');
     return '<div class="meta">' + parts.join(' · ') + (D.at ? ' · ' + esc(D.at.slice(11, 16)) + ' 時点' : '') + (LOADING ? ' · 読み直しています…' : '') + '</div>';
   }
   function stCell(t) {
@@ -338,10 +356,12 @@ form.add .acts { display: flex; justify-content: flex-end; gap: 8px; }
     return '<table><thead><tr><th class="st-h">状態</th><th>タスク</th><th class="hide-n">優先</th><th>期限</th></tr></thead><tbody>' + rows.map(function (t) {
       var sub = [chipOf(t)];
       if (t.category) sub.push('<span>' + esc(t.category) + '</span>');
-      if (!isTeam(t) && t.origin && t.origin !== '画面') sub.push('<span>' + esc(t.origin) + ' で頼んだ</span>');
+      if (t.memo && /^\[/.test(t.memo)) sub.push('<span>' + esc(t.memo.split('\n')[0].slice(0, 20)) + '</span>');
+      if (!isTeam(t) && t.origin && t.origin !== '画面') sub.push('<span>' + esc(t.origin) + (/^(LINE|声)$/.test(t.origin) ? ' で頼んだ' : ' から') + '</span>');
       if (t.assignee) sub.push('<span>' + esc(short(t.assignee)) + '</span>');
       if (t.bad) sub.push('<span class="chip warn">' + esc(t.bad) + '</span>');
-      return '<tr class="row' + (SEL === t.key ? ' sel' : '') + (isOpen(t) ? '' : ' done') + '" data-key="' + esc(t.key) + '"><td>' + stCell(t) + '</td>' +
+      var stripe = t.color ? ' style="box-shadow: inset 4px 0 0 ' + esc(t.color) + '"' : '';
+      return '<tr class="row' + (SEL === t.key ? ' sel' : '') + (isOpen(t) ? '' : ' done') + '" data-key="' + esc(t.key) + '"><td' + stripe + '>' + stCell(t) + '</td>' +
         '<td><span class="ttl">' + esc(t.name) + '</span><span class="sub">' + sub.join('') + '</span></td>' +
         '<td class="hide-n">' + (t.priority ? '<span class="chip ' + (t.priority === '高' ? 'bad' : t.priority === '中' ? 'warn' : '') + '">' + esc(t.priority) + '</span>' : '') + '</td>' +
         dueCell(t, today) + '</tr>';
@@ -352,24 +372,42 @@ form.add .acts { display: flex; justify-content: flex-end; gap: 8px; }
     if (!s || !s.url) return '';
     return '<a href="' + esc(s.url + (s.url.indexOf('#gid=') >= 0 ? '&range=A' + t.row : '')) + '" target="_blank" rel="noopener">表で開く</a>';
   }
+  function coList() {
+    var seen = {}, out = [];
+    ((D && D.companies) || []).concat(((D && D.tasks) || []).map(function (t) { return t.company; })).forEach(function (c) { if (c && !seen[c]) { seen[c] = true; out.push(c); } });
+    return '<datalist id="coList">' + out.map(function (c) { return '<option value="' + esc(c) + '">'; }).join('') + '</datalist>';
+  }
+  function editForm(t) {
+    var pr = ['', '高', '中', '低'].map(function (x) { return '<option value="' + x + '"' + (x === (t.priority || '') ? ' selected' : '') + '>' + (x || '—') + '</option>'; }).join('');
+    return '<form class="add" id="editForm" data-key="' + esc(t.key) + '" autocomplete="off">' +
+      '<label>タスク名<input name="name" required maxlength="200" value="' + esc(t.name) + '"></label>' +
+      '<div class="two"><label>会社<input name="company" list="coList" maxlength="40" value="' + esc(t.company || '') + '" placeholder="例: ぱんどら"></label>' +
+      '<label>優先度<select name="priority">' + pr + '</select></label></div>' +
+      '<div class="two"><label>期限<input name="due" type="date" value="' + esc(t.due || '') + '"></label>' +
+      '<label>順番<input name="order" inputmode="decimal" value="' + (t.order == null ? '' : esc(t.order)) + '" placeholder="小さいほど上"></label></div>' +
+      '<label>詳細<textarea name="detail" rows="3" maxlength="2000">' + esc(t.detail || '') + '</textarea></label>' +
+      '<label>メモ<textarea name="memo" rows="2" maxlength="2000">' + esc(t.memo || '') + '</textarea></label>' +
+      '<div class="acts"><button class="btn small" type="button" data-move="up" title="1 つ上へ">↑ 上へ</button><button class="btn small" type="button" data-move="down" title="1 つ下へ">↓ 下へ</button>' +
+      '<span class="sp"></span><button class="btn pri" type="submit"' + (BUSY[t.key] ? ' disabled' : '') + '>直す</button></div></form>' + coList();
+  }
   function drawer(t, today) {
     var btns = STATUSES.map(function (x) {
       var armed = ARM === t.key + '|' + x, back = isTeam(t) && t.status === DONE && x !== DONE;
       var label = x === DONE ? '完了にする' : (back ? (armed ? 'もう一度押すと「' + x + '」に戻します' : '戻す: ' + x) : x);
       return '<button class="btn small' + (x === t.status ? ' on' : '') + (armed ? ' danger' : '') + '" type="button" data-setst="' + esc(x) + '"' + (BUSY[t.key] ? ' disabled' : '') + '>' + esc(label) + '</button>';
     }).join('');
-    var dl = [['詳細', t.detail], [isTeam(t) ? '備考' : 'メモ', t.memo]];
-    if (isTeam(t)) dl.push(['担当', t.assignee], ['カテゴリ', [t.phase, t.category].filter(Boolean).join(' · ')]);
-    dl.push(['期限', t.due ? md(t.due) + (rawDue(t) && rawDue(t) !== t.due ? '（' + rawDue(t) + '）' : '') : (rawDue(t) || 'なし')]);
-    if (!isTeam(t)) dl.push(['元', t.origin + (t.ref ? '（' + t.ref + '）' : '')], ['作成', t.created], ['完了日', t.done_at]);
+    var dl = [];
+    if (isTeam(t)) dl.push(['詳細', t.detail], ['備考', t.memo], ['担当', t.assignee], ['カテゴリ', [t.phase, t.category].filter(Boolean).join(' · ')],
+      ['期限', t.due ? md(t.due) + (rawDue(t) && rawDue(t) !== t.due ? '（' + rawDue(t) + '）' : '') : (rawDue(t) || 'なし')]);
+    else dl.push(['元', t.origin + (t.ref ? '（' + t.ref + '）' : '')], ['作成', t.created], ['完了日', t.done_at]);
     dl.push(['更新', t.updated]);
     var links = (t.links || []).map(function (u, i) { return '<a href="' + esc(u) + '" target="_blank" rel="noopener">Slack ' + (i + 1) + '</a>'; }).join(' ');
     return '<aside class="drawer" aria-label="タスクの中身"><div class="dh"><div class="x"><div class="sub">' + chipOf(t) + ' <span>' + esc(isTeam(t) ? 'No ' + t.no : (t.no || '（コードなし）')) + '</span></div><h4>' + esc(t.name) + '</h4></div>' +
       '<button class="icon-btn" type="button" data-close aria-label="閉じる">' + I_CLOSE + '</button></div>' +
       '<div class="stbtns">' + btns + '</div>' +
-      (isTeam(t) ? '<div class="hint">管理表（秘書・コーポレート）の行です。ここから書くのは状態と最終更新日だけです。</div>' : '') +
       (t.bad ? '<div class="hint" style="color:var(--warn)">' + esc(t.bad) + '（表で T-012 のような形に直すと、カレンダーの予実とつながります）</div>' : '') +
-      '<dl class="dl">' + dl.filter(function (x) { return x[1]; }).map(function (x) { return '<dt>' + esc(x[0]) + '</dt><dd>' + esc(x[1]) + '</dd>'; }).join('') +
+      (isTeam(t) ? '' : editForm(t)) +
+      '<dl class="dl" style="margin-top:12px">' + dl.filter(function (x) { return x[1]; }).map(function (x) { return '<dt>' + esc(x[0]) + '</dt><dd>' + esc(x[1]) + '</dd>'; }).join('') +
       (links ? '<dt>リンク</dt><dd>' + links + '</dd>' : '') + '</dl>' +
       '<div style="margin-top:12px">' + rowLink(t) + '</div></aside>';
   }
@@ -377,11 +415,12 @@ form.add .acts { display: flex; justify-content: flex-end; gap: 8px; }
     var m = srcOf('mine');
     var inner = m && m.ok
       ? '<form class="add" id="addForm" autocomplete="off"><label>タスク名<input name="name" required maxlength="200" placeholder="例: 税務署に電話"></label>' +
-        '<div class="two"><label>期限<input name="due" type="date"></label><label>優先度<select name="priority"><option>中</option><option>高</option><option>低</option></select></label></div>' +
+        '<div class="two"><label>会社<input name="company" list="coList" maxlength="40" placeholder="例: ぱんどら"></label><label>優先度<select name="priority"><option>中</option><option>高</option><option>低</option></select></label></div>' +
+        '<label>期限<input name="due" type="date"></label>' +
         '<label>詳細<textarea name="detail" rows="3" maxlength="2000" placeholder="何ができたら終わりか"></textarea></label>' +
-        '<div class="acts"><button class="btn" type="button" data-close>やめる</button><button class="btn pri" type="submit">足す</button></div></form>'
-      : '<p class="hint">先に「Yu のタスク表」を作ってください。</p><button class="btn pri small" type="button" data-setup>表を作る</button>';
-    return '<aside class="drawer" aria-label="タスクを足す"><div class="dh"><div class="x"><h4>タスクを足す</h4><div class="hint">Yu のタスク表に入ります（香西分には入りません）</div></div>' +
+        '<div class="acts"><button class="btn" type="button" data-close>やめる</button><button class="btn pri" type="submit">足す</button></div></form>' + coList()
+      : '<p class="hint">先に「Yu のタスク表」をつないでください（マイエージェントに頼む）。</p>';
+    return '<aside class="drawer" aria-label="タスクを足す"><div class="dh"><div class="x"><h4>タスクを足す</h4><div class="hint">Yu のタスク表の一番下に入ります</div></div>' +
       '<button class="icon-btn" type="button" data-close aria-label="閉じる">' + I_CLOSE + '</button></div>' + inner + '</aside>';
   }
   function foot() {
@@ -395,10 +434,12 @@ form.add .acts { display: flex; justify-content: flex-end; gap: 8px; }
   function render() {
     // 足す画面の入力は、描き直しても残す（5 分おきの読み直しで消えないように）
     var f = document.getElementById('addForm'), keepV = null, focus = null;
-    if (f) { keepV = {}; ['name', 'due', 'priority', 'detail'].forEach(function (n) { if (f[n]) keepV[n] = f[n].value; }); if (document.activeElement && document.activeElement.form === f) focus = document.activeElement.name; }
+    if (f) { keepV = {}; ['name', 'company', 'due', 'priority', 'detail'].forEach(function (n) { if (f[n]) keepV[n] = f[n].value; }); if (document.activeElement && document.activeElement.form === f) focus = document.activeElement.name; }
+    var ef = document.getElementById('editForm'), keepE = null;
+    if (ef && ef.dataset.dirty === '1') { keepE = { key: ef.dataset.key }; ['name', 'company', 'priority', 'due', 'order', 'detail', 'memo'].forEach(function (n) { keepE[n] = ef[n].value; }); }
     var today = D ? D.today : new Date().toISOString().slice(0, 10);
     var all = D ? D.tasks : [];
-    var shown = all.filter(function (t) { return !F.off[t.src]; });
+    var shown = all.filter(function (t) { return !F.off[t.src] && (!F.co || coOf(t) === F.co); });
     var rows = shown.filter(function (t) { return inView(t, F.view, today); }).sort(cmp);
     var sel = SEL && SEL !== '__new__' ? all.filter(function (t) { return t.key === SEL; })[0] : null;
     if (SEL && SEL !== '__new__' && D && !sel) SEL = null;
@@ -408,6 +449,8 @@ form.add .acts { display: flex; justify-content: flex-end; gap: 8px; }
       (SEL === '__new__' ? addForm() : sel ? drawer(sel, today) : '') + '</div>' + foot() + '</main>' + (open ? '<div class="scrim" data-close></div>' : '');
     f = document.getElementById('addForm');
     if (f && keepV) { Object.keys(keepV).forEach(function (n) { if (f[n]) f[n].value = keepV[n]; }); if (focus && f[focus]) f[focus].focus(); }
+    ef = document.getElementById('editForm');   // 直しかけの中身は、描き直しても残す
+    if (ef && keepE && ef.dataset.key === keepE.key) { Object.keys(keepE).forEach(function (n) { if (n !== 'key' && ef[n]) ef[n].value = keepE[n]; }); ef.dataset.dirty = '1'; }
   }
 
   // ---- 操作
@@ -427,8 +470,37 @@ form.add .acts { display: flex; justify-content: flex-end; gap: 8px; }
       toast((e && e.message) || 'うまく変えられませんでした', true);
     }).then(function () { delete BUSY[t.key]; if (root.querySelector('.wrap')) render(); });
   }
+  function editTask(f) {
+    var t = taskOf(f.dataset.key);
+    if (!t || BUSY[t.key]) return;
+    var v = { name: f.name.value.replace(/\s+/g, ' ').trim(), company: f.company.value.trim(), priority: f.priority.value, due: f.due.value, order: f.order.value.trim(), detail: f.detail.value.trim(), memo: f.memo.value.trim() };
+    if (!v.name) { f.name.focus(); return; }
+    var was = { name: t.name, company: t.company || '', priority: t.priority || '', due: t.due || '', order: t.order == null ? '' : String(t.order), detail: t.detail || '', memo: t.memo || '' };
+    var fields = {};
+    Object.keys(v).forEach(function (k) { if (v[k] !== was[k]) fields[k] = v[k]; });
+    if (!Object.keys(fields).length) { toast('変わった所はありません'); return; }
+    BUSY[t.key] = true; render();
+    Backend.call('task.update', { no: t.no, fields: fields }).then(function (d) {
+      var key = t.key;
+      if (d && d.task) { for (var k in d.task) if (Object.prototype.hasOwnProperty.call(d.task, k)) t[k] = d.task[k]; }
+      t.key = key;
+      if ('company' in fields) { D.companies = (D.companies || []).concat(t.company && (D.companies || []).indexOf(t.company) < 0 ? [t.company] : []); }
+      toast('「' + short(t.name) + '」を直しました');
+    }, function (e) {
+      if (e && e.code === 'forbidden' && !WS.mock) { relogin('ログインの期限が切れました。もう一度ログインしてください。'); return; }
+      toast((e && e.message) || '直せませんでした', true);
+    }).then(function () { delete BUSY[t.key]; if (root.querySelector('.wrap')) render(); });
+  }
+  function moveTask(t, dir) {
+    if (!t || BUSY[t.key]) return;
+    BUSY[t.key] = true; render();
+    Backend.call('task.move', { no: t.no, dir: dir }).then(function (d) {
+      if (!d || !d.moved) { toast(dir === 'up' ? 'いちばん上です' : 'いちばん下です'); return; }
+      return Backend.call('task.list').then(function (x) { D = x; LAST = Date.now(); });
+    }, function (e) { toast((e && e.message) || '並べ替えられませんでした', true); }).then(function () { delete BUSY[t.key]; if (root.querySelector('.wrap')) render(); });
+  }
   function addTask(f) {
-    var p = { name: f.name.value.replace(/\s+/g, ' ').trim(), due: f.due.value, priority: f.priority.value, detail: f.detail.value.trim(), origin: '画面' };
+    var p = { name: f.name.value.replace(/\s+/g, ' ').trim(), company: f.company ? f.company.value.trim() : '', due: f.due.value, priority: f.priority.value, detail: f.detail.value.trim(), origin: '画面' };
     if (!p.name) { f.name.focus(); return; }
     var b = f.querySelector('[type=submit]');
     b.disabled = true; b.textContent = '足しています…';
@@ -457,6 +529,8 @@ form.add .acts { display: flex; justify-content: flex-end; gap: 8px; }
     if (el.matches('[data-close]')) { SEL = null; ARM = ''; render(); return; }
     if (el.matches('[data-view]')) { F.view = el.getAttribute('data-view'); keepF(); render(); return; }
     if (el.matches('[data-src]')) { var k = el.getAttribute('data-src'); if (F.off[k]) delete F.off[k]; else F.off[k] = true; keepF(); render(); return; }
+    if (el.matches('[data-co]')) { var c = el.getAttribute('data-co'); F.co = F.co === c ? '' : c; keepF(); render(); return; }
+    if (el.matches('[data-move]')) return moveTask(taskOf(SEL), el.getAttribute('data-move'));
     if (el.matches('[data-setup]')) return setup(el);
     if (el.matches('[data-logout]')) { relogin('ログアウトしました。'); return; }
     if (el.matches('[data-setst]')) {
@@ -473,7 +547,9 @@ form.add .acts { display: flex; justify-content: flex-end; gap: 8px; }
   });
   document.addEventListener('submit', function (e) {
     if (e.target.id === 'addForm') { e.preventDefault(); addTask(e.target); }
+    if (e.target.id === 'editForm') { e.preventDefault(); editTask(e.target); }
   });
+  document.addEventListener('input', function (e) { var f = e.target.form; if (f && f.id === 'editForm') f.dataset.dirty = '1'; });
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && SEL && !e.isComposing) { SEL = null; ARM = ''; render(); }
   });

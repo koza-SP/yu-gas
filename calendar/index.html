@@ -262,6 +262,8 @@ table.list tr:last-child td{border-bottom:0}
 .cal-links{display:flex;gap:2px;margin-left:6px;padding-left:10px;border-left:1px solid var(--line)}
 .cal-link{border:0;background:transparent;color:var(--sub);padding:8px 10px;border-radius:999px;cursor:pointer;font-size:14px;white-space:nowrap;text-align:left}
 .cal-link:hover{background:var(--line);color:var(--ink)}
+/* メニューのうち、ほかのページへ移るもの（タスク管理・マイエージェント）は <a> */
+a.cal-link,a.a-navitem{text-decoration:none;display:block}
 
 .cal-body{display:flex;flex:1;min-height:0}
 .cal-side{width:256px;flex:none;padding:4px 8px 16px 14px;overflow-y:auto;display:none}
@@ -526,6 +528,7 @@ input.cal-al-date{width:128px;padding:5px 6px;font-size:13px}
 <div id="app"></div>
 <script>window.__BOOT__ = null; window.NC_WEB = {"exec":"https://script.google.com/macros/s/AKfycbzkIJgwCx5b77F7wEeX54Cpz3UbMswZR8y5xA4OXPmxzkFMo35asTgQHH4i0yaVba5Y/exec","clientId":"1083278827563-i4i5ahf5rkk0lhn35juvc6j8tejapifs.apps.googleusercontent.com","icons":"/icons/"};
 (function () { try { var d = new Date().toLocaleString('en-US', { timeZone: 'Asia/Tokyo', day: 'numeric' }); var l = document.createElement('link'); l.rel = 'icon'; l.type = 'image/png'; l.href = "/icons/" + 'cal-' + d + '.png'; document.head.appendChild(l); } catch (e) {} })();</script>
+<script>window.NC_LINKS = {"tasks":"https://workspace.glowball-ec.com/tasks/","agent":"http://127.0.0.1:8179/"};</script>
 <script>
 // ---- shared/base.js ----
 // 時刻まわりの共通処理。GAS・ブラウザ・Node のどれでも、このファイルをそのまま使う
@@ -1305,6 +1308,11 @@ var CalendarView = (function () {
 
   function mount(box, ctx) {
     var api = ctx.api, go = ctx.go || function () {}, NAV = ctx.nav || [];
+    // メニューの 1 項目。n[3].href があれば、ほかのページ（タスク管理・マイエージェント）へ移るリンクにする（GAS の画面の中でも、画面ごと移る）
+    function navItem(n, label) {
+      if (n[3] && n[3].href) return h('a', { class: 'cal-link', 'data-nav': n[0], href: n[3].href, target: '_top', rel: 'noopener' }, label);
+      return h('button', { type: 'button', class: 'cal-link', 'data-nav': n[0], onclick: function () { go(n[0]); } }, label);
+    }
     var S = {
       alive: true, ready: false, fatal: '', mock: !!ctx.mock,
       cals: [], calBy: {}, palette: NC.GCAL, prefs: {}, tz: 'Asia/Tokyo', own: [], writable: {},
@@ -1585,7 +1593,7 @@ var CalendarView = (function () {
           h('div', { class: 'cal-seg', role: 'group', 'aria-label': '表示の切替' }, [['day', '日'], ['week', '週'], ['month', '月']].map(function (v) {
             return h('button', { type: 'button', class: 'cal-seg-b' + (S.view === v[0] ? ' is-on' : ''), 'data-view': v[0], 'aria-pressed': S.view === v[0] ? 'true' : 'false', onclick: function () { setView(v[0]); } }, v[1]);
           })),
-          h('nav', { class: 'cal-links' }, NAV.map(function (n) { return h('button', { type: 'button', class: 'cal-link', 'data-nav': n[0], onclick: function () { go(n[0]); } }, n[2] || n[1]); }))),
+          h('nav', { class: 'cal-links' }, NAV.map(function (n) { return navItem(n, n[2] || n[1]); }))),
         h('div', { class: 'cal-progress' + (busy ? ' is-on' : ''), 'aria-hidden': 'true' })
       ]);
     }
@@ -1599,7 +1607,7 @@ var CalendarView = (function () {
         miniMonth(),
         calGroup('マイカレンダー', mine, 'mine'),
         calGroup('他のカレンダー', others, 'others'),
-        h('nav', { class: 'cal-side-links' }, NAV.map(function (n) { return h('button', { type: 'button', class: 'cal-link', 'data-nav': n[0], onclick: function () { go(n[0]); } }, n[1]); })),
+        h('nav', { class: 'cal-side-links' }, NAV.map(function (n) { return navItem(n, n[1]); })),
         S.mock ? h('div', { class: 'a-mock cal-mock' }, 'モック表示中', h('small', null, 'カレンダー・メール・Meet はすべて作りものです')) : null
       ]);
     }
@@ -3187,6 +3195,21 @@ var CalendarView = (function () {
         })) : h('p', { class: 'muted', 'data-ws-none': '1' }, '書き込みの権限がある共有カレンダーはありません。'),
           '人から共有されたカレンダーは、ここでチェックを入れたものだけ、カレンダー画面から予定を足したり直したりできます（初めは、自分が持ち主のカレンダーだけ）。'),
         h('div', { class: 'inline', style: 'padding-top:12px' }, h('button', { type: 'button', class: 'btn primary', 'data-act': 'save2', onclick: save }, '保存する'))),
+      h('section', { class: 'card sec', 'data-sec': 'device' }, h('h2', null, 'この端末だけの設定'),
+        row('マイエージェントの URL', (function () {
+          var cur = ''; try { cur = localStorage.getItem(AGENT_KEY) || ''; } catch (e) { cur = ''; }
+          var el = h('input', { type: 'url', 'data-f': 'agentUrl', placeholder: (window.NC_LINKS && NC_LINKS.agent) || 'http://127.0.0.1:8179/', maxlength: 500 });
+          el.value = cur;
+          var btn = h('button', { type: 'button', class: 'btn', 'data-act': 'saveAgent', onclick: function () {
+            var v = el.value.trim();
+            if (v && !/^https?:\/\/\S+$/.test(v)) { UI.toast('http:// か https:// で始まる URL を入れてください', true); return; }
+            try { if (v) localStorage.setItem(AGENT_KEY, v); else localStorage.removeItem(AGENT_KEY); } catch (e) { UI.toast('このブラウザでは覚えられませんでした', true); return; }
+            UI.toast(v ? 'この端末で覚えました' : '初めの行き先に戻しました');
+            render();
+          } }, 'この端末で覚える');
+          return h('div', { class: 'urlrow' }, el, btn);
+        })(), 'メニューの「マイエージェント」で開く先です。空なら ' + ((window.NC_LINKS && NC_LINKS.agent) || 'http://127.0.0.1:8179/') +
+          '（この Mac 用）。iPhone など別の端末では、その端末で合言葉（token）つきの URL を 1 回貼ってください。URL はこの端末の中だけに覚え、どこにも送りません。')),
       h('section', { class: 'card sec' }, h('h2', null, '安全'),
         h('p', { class: 'muted' }, '管理画面の URL に入っている合言葉は、全部のカレンダーを読み書きできる鍵です。漏れたかもしれない時は、作り直してください。古い URL はその瞬間から使えなくなります。'),
         rotated ? h('div', { class: 'banner', 'data-rotated': '1' }, h('b', null, '新しい管理画面の URL（控えてください。古い URL は、もう使えません）'),
@@ -3216,11 +3239,27 @@ var CalendarView = (function () {
     return box;
   }
 
+  // メニューの、ほかのページへのリンク。行き先は組み立ての時に入る（NC_LINKS）。
+  // マイエージェントは端末ごとに行き先が違う（この Mac は 127.0.0.1、iPhone は合言葉つきの URL）ので、この端末で覚えた URL があればそちらへ
+  var AGENT_KEY = 'nc:agentUrl';
+  function agentUrl() {
+    var v = ''; try { v = localStorage.getItem(AGENT_KEY) || ''; } catch (e) { v = ''; }
+    return /^https?:\/\/\S+$/.test(v) ? v : ((window.NC_LINKS && NC_LINKS.agent) || '');
+  }
+  function extLinks() {
+    var L = window.NC_LINKS || {}, out = [];
+    if (L.tasks) out.push(['tasks', 'タスク管理', 'タスク管理', { href: L.tasks }]);
+    var a = agentUrl();
+    if (a) out.push(['agent', 'マイエージェント', 'マイエージェント', { href: a }]);
+    return out;
+  }
+
   function render() {
     var views = { list: viewList, edit: viewEdit, links: viewLinks, pick: viewPick, bookings: viewBookings, settings: viewSettings, mails: viewMails };
     var nav = [['calendar', 'カレンダー'], ['list', '日程調整カレンダー'], ['bookings', '予約一覧'], ['settings', '設定']];
     var calNav = NAV_CAL.slice();
     if (D.mock) { nav.push(['mails', '送信メール（モック）']); calNav.push(['mails', '送信メール（モック）', '送信メール']); }
+    nav = nav.concat(extLinks()); calNav = calNav.concat(extLinks());
     var active = { edit: 'list', links: 'list', pick: 'list' }[V.name] || V.name;
     if (calView) { calView.destroy(); calView = null; }
     root.innerHTML = '';
@@ -3235,6 +3274,7 @@ var CalendarView = (function () {
       h('aside', { class: 'a-nav' },
         h('div', { class: 'a-brand' }, UI.icon('cal'), '日程調整'),
         nav.map(function (n) {
+          if (n[3] && n[3].href) return h('a', { class: 'a-navitem', 'data-nav': n[0], href: n[3].href, target: '_top', rel: 'noopener' }, n[1]);
           return h('button', { type: 'button', class: 'a-navitem' + (active === n[0] ? ' is-on' : ''), 'data-nav': n[0], onclick: function () { go(n[0]); } }, n[1]);
         }),
         D.mock ? h('div', { class: 'a-mock' }, 'モック表示中', h('small', null, 'カレンダー・メール・Meet はすべて作りものです')) : null),

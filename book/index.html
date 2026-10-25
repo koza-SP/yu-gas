@@ -262,6 +262,8 @@ table.list tr:last-child td{border-bottom:0}
 .cal-links{display:flex;gap:2px;margin-left:6px;padding-left:10px;border-left:1px solid var(--line)}
 .cal-link{border:0;background:transparent;color:var(--sub);padding:8px 10px;border-radius:999px;cursor:pointer;font-size:14px;white-space:nowrap;text-align:left}
 .cal-link:hover{background:var(--line);color:var(--ink)}
+/* メニューのうち、ほかのページへ移るもの（タスク管理・マイエージェント）は <a> */
+a.cal-link,a.a-navitem{text-decoration:none;display:block}
 
 .cal-body{display:flex;flex:1;min-height:0}
 .cal-side{width:256px;flex:none;padding:4px 8px 16px 14px;overflow-y:auto;display:none}

@@ -196,6 +196,7 @@ tr.row.drop-b td { box-shadow: inset 0 -2px 0 var(--accent); }
   }
   function md(d) { var w = '日月火水木金土'[new Date(d + 'T00:00:00Z').getUTCDay()]; return (+d.slice(5, 7)) + '/' + (+d.slice(8, 10)) + '(' + w + ')'; }
   function rawDue(t) { var r = String(t.due_raw || '').trim(); return /^(-|ー|―|—)$/.test(r) ? '' : r; }   // 「-」は期限なし
+  function keptNoDue(t) { return /^(なし|-|ー|―|—)$/.test(String(t.due_raw || '').trim()); }   // 「期限なしのまま」と決めた物（もう聞かない）
   function short(s) { s = String(s || ''); return s.length > 24 ? s.slice(0, 23) + '…' : s; }
   function toast(msg, bad) {
     var t = document.createElement('div');
@@ -444,7 +445,7 @@ tr.row.drop-b td { box-shadow: inset 0 -2px 0 var(--accent); }
   }
   // 期限を順に決める: 期限の無い未完了を、順番の上から 1 件ずつ
   function nextUndecided() {
-    return ((D && D.tasks) || []).filter(function (t) { return !isTeam(t) && isOpen(t) && !t.archived && !t.due && !SKIP[t.key] && (!F.co || coOf(t) === F.co); }).sort(ord);
+    return ((D && D.tasks) || []).filter(function (t) { return !isTeam(t) && isOpen(t) && !t.archived && !t.due && !keptNoDue(t) && !SKIP[t.key] && (!F.co || coOf(t) === F.co); }).sort(ord);
   }
   function decideCard(today) {
     var left = nextUndecided(), t = left[0];
@@ -453,7 +454,7 @@ tr.row.drop-b td { box-shadow: inset 0 -2px 0 var(--accent); }
     if (!t) return head + '<div class="empty">期限の無いタスクは、もうありません。</div></aside>';
     return head + '<div class="decide" data-key="' + esc(t.key) + '"><div class="sub">' + chipOf(t) + ' <span>' + esc(t.no) + '</span></div><h4 class="dname">' + esc(t.name) + '</h4>' +
       (t.detail ? '<p class="hint">' + esc(t.detail.slice(0, 120)) + '</p>' : '') + quickRows(t, today) +
-      '<div class="acts"><button class="btn small" type="button" data-skip>あとで</button><button class="btn small" type="button" data-skip="keep">期限なしのまま</button></div></div></aside>';
+      '<div class="acts"><button class="btn small" type="button" data-skip>あとで</button><button class="btn small" type="button" data-nodue>期限なしのまま</button></div></div></aside>';
   }
   function drawer(t, today) {
     var btns = STATUSES.map(function (x) {
@@ -650,6 +651,7 @@ tr.row.drop-b td { box-shadow: inset 0 -2px 0 var(--accent); }
     if (el.matches('[data-pri]')) { var pv = el.getAttribute('data-pri'); return quickUpdate(cur, { priority: cur.priority === pv ? '' : pv }); }
     if (el.matches('[data-urg]')) { var uv = el.getAttribute('data-urg'); return quickUpdate(cur, { urgency: cur.urgency === uv ? '' : uv }); }
     if (el.matches('[data-skip]')) { if (cur) SKIP[cur.key] = true; render(); return; }
+    if (el.matches('[data-nodue]')) { if (!cur) return; SKIP[cur.key] = true; return quickUpdate(cur, { due: 'なし' }, '「' + short(cur.name) + '」は期限なしのままにしました（次から聞きません）'); }
     if (el.matches('[data-decide]')) { SEL = '__decide__'; SKIP = {}; ARM = ''; render(); return; }
     if (el.matches('[data-archivedone]')) return archiveDone();
     if (el.matches('[data-archive]')) return archiveTask(taskOf(SEL), true);

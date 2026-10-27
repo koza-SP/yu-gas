@@ -489,6 +489,72 @@ input.cal-al-date{width:128px;padding:5px 6px;font-size:13px}
 .cal-al-actions{margin-top:10px;display:flex;gap:8px}
 .cal-al-empty{color:var(--sub);font-size:13px;padding:12px 0}
 
+/* 勤務場所（06_機能要件_勤務場所.md）: 日付の下の札・時刻の列の右の余白の帯・月の表の印・小窓。色は種類で決まる */
+.cal{--wl-home:#188038;--wl-office:#1967d2;--wl-other:#5f6368}
+@media (prefers-color-scheme:dark){.cal{--wl-home:#81c995;--wl-office:#8ab4f8;--wl-other:#bdc1c6}}
+.k-home{--wlc:var(--wl-home)}.k-office{--wlc:var(--wl-office)}.k-other{--wlc:var(--wl-other)}
+.cal-wlrow{display:flex;flex:none;border-bottom:1px solid var(--line)}
+.cal-gut-wl{font-size:10px;color:var(--sub);text-align:right;padding:5px 10px 0 0;white-space:nowrap}
+.cal-wlc{flex:1;min-width:0;display:flex;align-items:center;gap:3px;height:24px;padding:0 4px;border:0;border-left:1px solid var(--line);background:transparent;color:var(--ink);font-size:11px;line-height:1;cursor:pointer;overflow:hidden;text-align:left}
+.cal-wlc:hover,.cal-wlc:focus-visible{background:var(--line);outline:none}
+.cal-wlc-add{display:inline-flex;align-items:center;gap:2px;color:var(--sub);opacity:0}
+.cal-wlc-add .ic{width:12px;height:12px}
+.cal-wlc:hover .cal-wlc-add,.cal-wlc:focus-visible .cal-wlc-add{opacity:1}
+.cal-wlchip{display:inline-flex;align-items:center;gap:3px;min-width:0;height:18px;padding:0 6px 0 4px;border-radius:9px;border:1px solid transparent;background:color-mix(in srgb,var(--wlc) 13%,transparent);color:var(--wlc);font-weight:600;white-space:nowrap;overflow:hidden}
+.cal-wlchip .ic{width:12px;height:12px}
+.cal-wlchip-t{overflow:hidden;text-overflow:ellipsis}
+.cal-wlchip.is-pat{background:transparent;border-style:dashed;border-color:color-mix(in srgb,var(--wlc) 55%,transparent);font-weight:500}
+.cal-wlchip.is-g{background:transparent;border-color:color-mix(in srgb,var(--wlc) 40%,transparent);font-weight:500}
+.cal-wlchip.is-small{padding:0 3px;flex:none}
+.cal-wlchip.is-multi{padding:0 4px;gap:2px;flex:none;background:transparent;border-color:var(--line2)}
+.cal-wlchip-i{display:inline-flex;color:var(--wlc)}
+.cal-wl-g{display:inline-flex;align-items:center;justify-content:center;width:12px;height:12px;border-radius:3px;background:var(--sub);color:var(--card);font-size:9px;font-weight:700;line-height:1;flex:none}
+.cal-wl-g.is-ok{background:transparent;color:var(--sub);border:1px solid var(--line2)}
+.cal-wl-clash{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:var(--danger);color:#fff;font-size:10px;font-weight:700;flex:none}
+.cal-wlbars{position:absolute;right:1px;top:0;bottom:0;width:9px;pointer-events:none;z-index:1}
+.cal-wlbar{position:absolute;right:3px;width:3px;border-radius:2px;background:var(--wlc)}
+.cal-wlbars.is-two .cal-wlbar.is-own{right:5px}
+.cal-wlbar.is-pat{opacity:.5}
+.cal-wlbar.is-g{right:1px;opacity:.55}
+.cal-wlbar.is-clash{right:0;width:9px;border-radius:0;background:repeating-linear-gradient(180deg,var(--danger) 0 3px,transparent 3px 6px);opacity:.75}
+.cal-mcell{position:relative}
+.cal-mwl{position:absolute;top:3px;right:3px;width:20px;height:20px;border:0;border-radius:50%;background:transparent;color:var(--wlc);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+.cal-mwl:hover{background:var(--line)}
+.cal-mwl .ic{width:14px;height:14px}
+.cal-mwl.is-g{opacity:.65}
+.cal-mwl.is-clash::after{content:"";position:absolute;top:1px;right:1px;width:6px;height:6px;border-radius:50%;background:var(--danger)}
+.cal-wl-toggle{display:flex;align-items:center;gap:8px;margin:10px 0 0;padding:6px 8px;border-radius:8px;font-size:13px;cursor:pointer;color:var(--ink)}
+.cal-wl-toggle:hover{background:var(--line)}
+.cal-wl-toggle .ic{width:16px;height:16px;color:var(--wl-home)}
+.cal-wlpop{width:380px}
+.cal-wl-h{font-size:16px;font-weight:600;margin:0 0 8px}
+.cal-wl-sec{margin:0 0 8px}
+.cal-wl-cap{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--sub);margin:0 0 4px}
+.cal-wl-types{display:flex;gap:6px;flex-wrap:wrap}
+.cal-wl-qb{display:inline-flex;align-items:center;gap:5px;height:30px;padding:0 11px;border:1px solid var(--line2);border-radius:15px;background:var(--card);color:var(--ink);cursor:pointer;font-size:13px}
+.cal-wl-qb .ic{width:15px;height:15px;color:var(--wlc)}
+.cal-wl-qb:hover{background:var(--line)}
+.cal-wl-qb.is-on{border-color:var(--wlc);background:color-mix(in srgb,var(--wlc) 12%,transparent);color:var(--wlc);font-weight:600}
+.cal-wl-list{display:flex;flex-direction:column;gap:1px;margin:4px 0 6px;border-top:1px solid var(--line);padding-top:6px}
+.cal-wl-row{display:flex;align-items:center;gap:8px;min-height:30px;padding:0 2px}
+.cal-wl-row > .ic{width:16px;height:16px;color:var(--wlc)}
+.cal-wl-row-t{font-weight:600;font-size:14px;white-space:nowrap}
+.cal-wl-row-s{color:var(--sub);font-size:12px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cal-wl-row.is-pat{opacity:.8}
+.cal-wl-row .cal-ib{width:30px;height:30px}
+.cal-wl-row .cal-ib .ic{width:16px;height:16px}
+.cal-wl-open{font-size:12px}
+.cal-wl-none{font-size:13px;padding:4px 2px}
+.cal-wl-split{margin:0 0 6px}
+.cal-wl-form{display:flex;flex-direction:column;gap:8px;padding:10px;border:1px solid var(--line);border-radius:10px;margin:2px 0 8px}
+.cal-wl-form input.cal-wl-name{padding:6px 10px;font-size:14px}
+.cal-wl-form .cal-pop-actions{margin-top:0}
+.cal-wl-gsec{border-top:1px solid var(--line);padding-top:6px;margin-top:4px}
+.cal-wl-warn{background:var(--danger-soft);color:var(--danger);border-radius:8px;padding:6px 10px;font-size:12px;margin:6px 0;line-height:1.5}
+.cal-wl-pat{display:flex;flex-wrap:wrap;align-items:center;gap:4px;border-top:1px solid var(--line);padding-top:8px;margin-top:6px;font-size:12px;color:var(--sub)}
+.cal-wl-pat-t{flex:1 1 100%}
+.cal-wl-ask p{font-size:13px;margin:0 0 8px;line-height:1.6}
+
 /* 狭い画面のカレンダー */
 @media (max-width:1100px){
   .cal-links{display:none}
@@ -516,6 +582,12 @@ input.cal-al-date{width:128px;padding:5px 6px;font-size:13px}
   .cal-hd-num{width:34px;height:34px;font-size:18px;line-height:34px}
   .cal-hd{padding-top:4px}
   .cal-evs{right:6px}
+  .cal-wlbars{width:6px;right:0}
+  .cal-wlbar{right:2px;width:2px}
+  .cal-wlbars.is-two .cal-wlbar.is-own{right:3px}
+  .cal-wlbar.is-g{right:0}
+  .cal-wlbar.is-clash{width:6px}
+  .cal-grid[data-grid=week] .cal-wlchip-t{display:none}
   .cal-ev.is-draft,.cal-ev.is-ghost{right:6px}
   .cal-dialog{border-radius:0;width:100%;height:100%;max-height:none}
   .cal-modal{padding:0}
@@ -972,19 +1044,230 @@ var NC = (typeof NC !== 'undefined') ? NC : {};
 
 </script>
 <script>
+// ---- shared/wl.js ----
+// 勤務場所（Google の勤務場所と同じ形）の計算の部品。形は 03_作りの約束_カレンダー画面.md の §1-1、決めは 06_機能要件_勤務場所.md
+// 画面（DOM）にも Google にも触らない。中身（core）と画面と試験が、同じ物を使う
+var NC = (typeof NC !== 'undefined') ? NC : {};
+(function (NC) {
+  var DAY_MIN = 1440;
+
+  NC.WL_TYPES = ['home', 'office', 'other'];
+  NC.WL_NAMES = { home: '自宅', office: 'オフィス', other: 'その他' };
+  // Google の勤務場所の種類（workingLocationProperties.type）との対応。Workspace に写す時もこれを使う
+  NC.WL_GOOGLE = { home: 'homeOffice', office: 'officeLocation', other: 'customLocation' };
+  NC.WL_LABEL_MAX = 40;
+  NC.WL_PATTERN_MAX = 3;          // いつもの形の、1 つの曜日に置ける場所の数
+
+  // Google の種類 → この道具の種類。知らない種類は「その他」（Google が種類を増やしても落とさない）
+  NC.wlTypeOf = function (googleType) {
+    if (googleType === 'homeOffice') return 'home';
+    if (googleType === 'officeLocation') return 'office';
+    return 'other';
+  };
+  function clean(s) { return String(s == null ? '' : s).replace(/[\u0000-\u001f\u007f]/g, ' ').replace(/\s+/g, ' ').trim(); }
+  // 出す名前: 名前があればそれ、無ければ種類の名前
+  NC.wlLabel = function (type, label) {
+    var x = clean(label).slice(0, NC.WL_LABEL_MAX);
+    return x || NC.WL_NAMES[type] || NC.WL_NAMES.other;
+  };
+  // 名前が同じ場所か（違う時間の印に使う。前後の空白と、全角・半角の違いは見ない）
+  function sameName(a, b) {
+    function n(s) { return clean(s).replace(/[！-～]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0xfee0); }).replace(/　/g, ' ').toLowerCase(); }
+    return n(a) === n(b);
+  }
+  NC.wlSameName = sameName;
+
+  // ---- いつもの形 ----
+  // { '0'〜'6'（曜日。0 = 日曜）: [{ type, label, allDay: true } か { type, label, from, to }] }
+  // 1 つの曜日に、終日なら 1 本だけ、時間帯なら 3 本まで（重ならず、早い順）。読めない物は捨てる（画面が落ちないように）
+  NC.wlPattern = function (p) {
+    var out = {};
+    if (!p || typeof p !== 'object' || Array.isArray(p)) return out;
+    for (var d = 0; d < 7; d++) {
+      var list = p[String(d)];
+      if (!Array.isArray(list)) continue;
+      var r = NC.wlPatternDay(list);
+      if (!r.error && r.list.length) out[String(d)] = r.list;
+    }
+    return out;
+  };
+  // 1 つの曜日の分を確かめて整える。{ list, error }（error があれば保存しない）
+  NC.wlPatternDay = function (list) {
+    if (!Array.isArray(list)) return { list: [], error: '形が正しくありません。' };
+    var out = [], all = 0;
+    for (var i = 0; i < list.length; i++) {
+      var x = list[i] || {}, type = String(x.type || '');
+      if (NC.WL_TYPES.indexOf(type) < 0) return { list: [], error: '場所の種類が正しくありません。' };
+      if (type === 'other' && !clean(x.label)) return { list: [], error: '「その他」には名前を入れてください。' };
+      var label = NC.wlLabel(type, x.label);
+      if (x.allDay) { all++; out.push({ type: type, label: label, allDay: true }); continue; }
+      var a = Math.round(Number(x.from)), b = Math.round(Number(x.to));
+      if (!isFinite(a) || !isFinite(b) || a < 0 || b > DAY_MIN || b - a < 15) return { list: [], error: '時間帯を確かめてください（15 分以上、その日の中）。' };
+      out.push({ type: type, label: label, from: a, to: b });
+    }
+    if (all && out.length > 1) return { list: [], error: '終日の場所と時間帯の場所は、同じ曜日に一緒に置けません。' };
+    if (out.length > NC.WL_PATTERN_MAX) return { list: [], error: '1 つの曜日に置ける場所は ' + NC.WL_PATTERN_MAX + ' つまでです。' };
+    out.sort(function (p, q) { return (p.from || 0) - (q.from || 0); });
+    for (var k = 1; k < out.length; k++) if (out[k].from < out[k - 1].to) return { list: [], error: '時間帯が重なっています。' };
+    return { list: out, error: '' };
+  };
+
+  // ---- 1 日の並び ----
+  // その瞬間が、その日の 0 時から何分目か（layout.js の minuteOfDay と同じ。サーバ側には layout.js を載せないので、ここにも持つ）
+  function minuteOf(ms, ymd, tz) {
+    var p = NC.parts(ms, tz), d = p.y + '-' + NC.pad(p.m) + '-' + NC.pad(p.d);
+    if (d === ymd) return p.hh * 60 + p.mm;
+    return d < ymd ? 0 : DAY_MIN;
+  }
+  // 帯を [a, b)（その日の 0 時からの分）に直す。その日に掛からなければ null
+  function span(x, ymd, tz) {
+    if (x.allDay) {
+      if (!(x.startDate <= ymd && ymd < x.endDate)) return null;
+      return { a: 0, b: DAY_MIN };
+    }
+    var d0 = NC.ymdToUtc(ymd, tz, 0), d1 = NC.ymdToUtc(NC.addDays(ymd, 1), tz, 0);
+    if (!(x.end > d0 && x.start < d1)) return null;
+    var a = x.start <= d0 ? 0 : minuteOf(x.start, ymd, tz), b = x.end >= d1 ? DAY_MIN : minuteOf(x.end, ymd, tz);
+    return b > a ? { a: a, b: b } : null;
+  }
+  // 上に置いた物が下の物を隠す: base の帯から [a, b) を切り抜いて seg を入れる
+  function overlay(list, seg) {
+    var out = [];
+    list.forEach(function (x) {
+      if (x.b <= seg.a || x.a >= seg.b) { out.push(x); return; }
+      if (x.a < seg.a) out.push(copy(x, x.a, seg.a));
+      if (x.b > seg.b) out.push(copy(x, seg.b, x.b));
+    });
+    out.push(seg);
+    return out.sort(function (p, q) { return p.a - q.a; });
+  }
+  function copy(x, a, b) { var o = {}; for (var k in x) o[k] = x[k]; o.a = a; o.b = b; return o; }
+  function segOf(x, sp, src) {
+    return { a: sp.a, b: sp.b, type: x.type, label: NC.wlLabel(x.type, x.label), src: src, id: x.id || '', calId: x.calId || '', allDay: !!x.allDay, htmlLink: x.htmlLink || '', recurring: !!x.recurring };
+  }
+  // 1 本の帯を組む: 終日の物がその日の基本、時間帯の物はその時間だけ上書き（後ろの物ほど上）
+  function lane(items, ymd, tz, base) {
+    var out = base ? base.slice() : [], timed = [];
+    items.forEach(function (x) {
+      var sp = span(x, ymd, tz);
+      if (!sp) return;
+      if (x.allDay) out = overlay(out, segOf(x, sp, x.src));    // 終日どうしは、後ろの物（後から入った物）が勝つ
+      else timed.push({ x: x, sp: sp });
+    });
+    timed.forEach(function (t) { out = overlay(out, segOf(t.x, t.sp, t.x.src)); });
+    return out;
+  }
+
+  // その日の勤務場所。items: 勤務場所（§1-1）の配列（own と google が混ざってよい）。pattern: いつもの形。
+  // 返す: { own: [帯], google: [帯], clash: [{ a, b, own, google }] }
+  //   帯: { a, b（分）, type, label, src: 'own' | 'pattern' | 'google', id, calId, allDay, htmlLink, recurring }
+  //   own   = 自分の記録 ＋ いつもの形（その日に自分の終日の記録が無い時だけ、いつもの形がその日の基本になる）
+  //   clash = 自分の場所とジーネクストなど Google 本来の勤務場所が同じ時間にあり、名前が違う所
+  NC.wlDay = function (ymd, items, pattern, tz) {
+    items = Array.isArray(items) ? items : [];
+    var own = items.filter(function (x) { return x && x.src === 'own'; }), google = items.filter(function (x) { return x && x.src === 'google'; });
+    var hasAllDay = own.some(function (x) { return x.allDay && span(x, ymd, tz); });
+    var base = [];
+    if (!hasAllDay) {
+      var pd = (NC.wlPattern(pattern || {}))[String(NC.dowOf(ymd))] || [];
+      pd.forEach(function (x) {
+        base.push({ a: x.allDay ? 0 : x.from, b: x.allDay ? DAY_MIN : x.to, type: x.type, label: x.label, src: 'pattern', id: '', calId: '', allDay: !!x.allDay, htmlLink: '', recurring: false });
+      });
+    }
+    var o = lane(own, ymd, tz, base), g = lane(google, ymd, tz, []), clash = [];
+    o.forEach(function (x) {
+      g.forEach(function (y) {
+        var a = Math.max(x.a, y.a), b = Math.min(x.b, y.b);
+        if (b > a && !sameName(x.label, y.label)) clash.push({ a: a, b: b, own: x.label, google: y.label });
+      });
+    });
+    clash.sort(function (p, q) { return p.a - q.a; });
+    return { own: o, google: g, clash: clash };
+  };
+
+  // 出す時のまとめ: 同じ場所が切れ目なく続く所を 1 本にする（終日の上に時間帯を重ねて分かれた分など）。
+  // 札・LINE・いつもの形に使う。どの記録かは要らない所だけで使う（小窓は記録そのものを並べる）
+  NC.wlMerge = function (segs) {
+    var out = [];
+    (segs || []).forEach(function (x) {
+      if (!(x.b > x.a)) return;
+      var last = out[out.length - 1];
+      if (last && last.b === x.a && last.type === x.type && sameName(last.label, x.label)) { last.b = x.b; return; }
+      var o = {}; for (var k in x) o[k] = x[k];
+      out.push(o);
+    });
+    return out;
+  };
+
+  // その日の並びから、いつもの形の 1 曜日分を作る（「この曜日のいつもの形にする」）。
+  // 自分の帯（記録 ＋ いつもの形）を、そのまま曜日の形にする。終日の物が 1 本だけなら終日、それ以外は時間帯（多ければ長い順に 3 本）
+  NC.wlPatternFromDay = function (dayOwn) {
+    var merged = NC.wlMerge(dayOwn).map(function (x) { return { a: x.a, b: x.b, type: x.type, label: x.label }; });
+    if (merged.length === 1 && merged[0].a === 0 && merged[0].b === DAY_MIN) return [{ type: merged[0].type, label: merged[0].label, allDay: true }];
+    if (merged.length > NC.WL_PATTERN_MAX) {
+      merged = merged.slice().sort(function (p, q) { return (q.b - q.a) - (p.b - p.a); }).slice(0, NC.WL_PATTERN_MAX).sort(function (p, q) { return p.a - q.a; });
+    }
+    return merged.map(function (x) { return { type: x.type, label: x.label, from: x.a, to: x.b }; });
+  };
+
+  // ---- 置く時の決め（同じ段の、後から置いた方が勝つ） ----
+  // existing: 自分の記録（own）の配列。rec: 置く物 { id?, allDay, startDate, endDate } か { id?, allDay: false, start, end }
+  // 返す: 前の記録への手当ての並び
+  //   { op: 'remove', id } / { op: 'update', id, …新しい時 } / { op: 'insert', of: 元の id, type, label, …時 }
+  //   終日と時間帯は段が違うので触らない（時間帯の場所は、終日の場所の上に重なってよい）
+  NC.wlPlan = function (existing, rec) {
+    var out = [];
+    (existing || []).forEach(function (x) {
+      if (!x || x.src !== 'own' || (rec.id && x.id === rec.id)) return;
+      if (!!x.allDay !== !!rec.allDay) return;
+      var xs, xe, rs, re;
+      if (rec.allDay) { xs = x.startDate; xe = x.endDate; rs = rec.startDate; re = rec.endDate; }
+      else { xs = x.start; xe = x.end; rs = rec.start; re = rec.end; }
+      if (!(rs < xe && re > xs)) return;                               // 重ならない
+      if (rs <= xs && re >= xe) { out.push({ op: 'remove', id: x.id }); return; }   // まるごと隠れる
+      var keepL = xs < rs, keepR = xe > re;
+      if (keepL) out.push(times({ op: 'update', id: x.id }, rec.allDay, xs, rs));
+      if (keepR) {
+        if (keepL) out.push(times({ op: 'insert', of: x.id, type: x.type, label: x.label }, rec.allDay, re, xe));   // 真ん中に置いた: 2 つに分ける
+        else out.push(times({ op: 'update', id: x.id }, rec.allDay, re, xe));
+      }
+    });
+    return out;
+  };
+  function times(o, allDay, a, b) {
+    o.allDay = !!allDay;
+    if (allDay) { o.startDate = a; o.endDate = b; } else { o.start = a; o.end = b; }
+    return o;
+  }
+
+  // 「10:00〜14:00」の書き方（LINE・小窓・札の補足に使う）
+  NC.wlRange = function (seg) {
+    if (seg.a === 0 && seg.b === DAY_MIN) return '終日';
+    function hm(m) { return Math.floor(m / 60) + ':' + NC.pad(m % 60); }
+    return hm(seg.a) + '〜' + (seg.b === DAY_MIN ? '24:00' : hm(seg.b));
+  };
+})(NC);
+
+</script>
+<script>
 // ---- web/js/backend-http.js ----
 // 自前のページ（workspace.glowball-ec.com）用の裏側。GAS の JSON の窓口（doPost）を fetch で呼ぶ。
 // GAS の画面ではないので、Google の「このアプリケーションは…」の帯が出ない。
-// 管理の操作には、「Google でログイン」で得た証（ID トークン）を付ける（admin.js が Backend.idToken に入れる）
+// 管理の操作には持ち主の証を付ける。この端末のログインの印（session。30 日）があればそれ、無ければ「Google でログイン」の証（ID トークン）。
+// どちらも admin.js が入れる。付けないのは相手向けの操作（guest.*）だけ（操作の名前で選ぶと、新しく足した操作に付け忘れる）
 var Backend = {
   mode: 'web',
   exec: (window.NC_WEB && window.NC_WEB.exec) || '',
   idToken: '',
+  session: '',
   call: function (action, payload) {
     var body = {}, k;
     payload = payload || {};
     for (k in payload) if (Object.prototype.hasOwnProperty.call(payload, k)) body[k] = payload[k];
-    if (Backend.idToken && /^(admin|cal)\./.test(String(action))) body.idToken = Backend.idToken;
+    if (!/^guest\./.test(String(action))) {
+      if (Backend.session) body.session = Backend.session;
+      else if (Backend.idToken) body.idToken = Backend.idToken;
+    }
     // text/plain で送る（JSON の型にすると、ブラウザが事前の問い合わせを挟み、GAS がそれに答えられない）
     return fetch(Backend.exec, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: action, payload: body }), redirect: 'follow' })
       .then(function (res) { return res.text(); }, function () {
@@ -1028,6 +1311,9 @@ var UI = (function () {
     more: '<circle cx="12" cy="5" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="12" cy="19" r="1.2"/>',
     lock: '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/>',
     chart: '<path d="M5 20V11M12 20V5M19 20v-6M3 20h18"/>',
+    // 勤務場所（自宅・オフィス。その他は pin）
+    home: '<path d="M4 11.5L12 5l8 6.5"/><path d="M6.5 10v9.5h11V10"/><path d="M10.2 19.5v-5h3.6v5"/>',
+    office: '<rect x="5" y="3.5" width="14" height="17" rx="1.5"/><path d="M9 7.5h2M13 7.5h2M9 11h2M13 11h2M9 14.5h2M13 14.5h2M11 20.5v-3h2v3"/>',
     palette: '<path d="M12 3a9 9 0 100 18c1.2 0 2-.8 2-2 0-.6-.3-1-.6-1.4-.3-.4-.4-.7-.4-1.1 0-1 .8-1.8 1.8-1.8H17a4 4 0 004-4c0-4.4-4-7.7-9-7.7z"/><circle cx="7.5" cy="11.5" r="1.2"/><circle cx="10.5" cy="7.5" r="1.2"/><circle cx="15" cy="7.5" r="1.2"/>'
   };
   var TZS = ['Asia/Tokyo', 'Asia/Seoul', 'Asia/Shanghai', 'Asia/Hong_Kong', 'Asia/Taipei', 'Asia/Singapore', 'Asia/Bangkok', 'Asia/Kolkata',
@@ -1323,11 +1609,13 @@ var CalendarView = (function () {
       narrow: window.innerWidth < NARROW, side: true, drawer: false,
       alloc: { open: false, mine: false, custom: false, from: '', to: '', err: '' },
       draft: null, pop: null, dialog: null, undo: null, snack: null,
+      wl: {}, wlCal: '', wlPattern: {}, wlOn: true,      // 勤務場所（06_機能要件_勤務場所.md）: 覚えた物・勤務場所のカレンダー・いつもの形・出すか
       scrollTop: -1, eatUntil: 0, eatSeq: false, dirty: false, timer: 0, resizeTimer: 0
     };
     var D = null;   // つかんでいる最中の覚え書き
 
     S.side = !S.narrow;
+    S.wlOn = pget('wl') !== '0';
     S.view = S.narrow ? 'day' : (KEEP.view || pget('view') || 'week');
     if (['day', 'week', 'month'].indexOf(S.view) < 0) S.view = 'week';
     S.anchor = KEEP.anchor || '';
@@ -1447,6 +1735,11 @@ var CalendarView = (function () {
       });
       list.forEach(function (ev) { S.store[keyOf(ev)] = ev; });
     }
+    // 勤務場所は予定とは別に覚える（読んだ期間の分を入れ替える）
+    function replaceWl(a, b, list) {
+      Object.keys(S.wl).forEach(function (k) { var x = S.wl[k]; if (x.end > a && x.start < b) delete S.wl[k]; });
+      list.forEach(function (x) { S.wl[keyOf(x)] = x; });
+    }
     function whenIdle(fn) { if (S.inflight === 0) fn(); else S.idle.push(fn); }
     function begin() { S.inflight++; S.mutSeq++; }
     function end() { S.inflight--; S.mutSeq++; if (S.inflight === 0) { var q = S.idle; S.idle = []; q.forEach(function (f) { f(); }); } }
@@ -1461,6 +1754,7 @@ var CalendarView = (function () {
         if (!S.alive || gen !== S.gen) return;                       // 読み直しの後に届いた古い返事は捨てる
         if (busy || S.inflight > 0 || seq !== S.mutSeq) { whenIdle(function () { fetchRange(a, b, true); }); return; }   // 書き込みと行き違いになった返事は使わない
         replaceRange(a, b, r.events || []);
+        replaceWl(a, b, r.wl || []);
         addLoaded(a, b);
         var p = period();
         if (a < p.to && b > p.from) S.errors = r.errors || {};
@@ -1517,6 +1811,8 @@ var CalendarView = (function () {
       S.own = (d.ownEmails || []).map(function (s) { return String(s).toLowerCase(); });
       S.writable = {}; (d.writable || []).forEach(function (id) { S.writable[id] = 1; });
       S.mock = !!d.mock;
+      S.wlCal = (d.wl && d.wl.calId) || '';
+      S.wlPattern = NC.wlPattern(d.wl && d.wl.pattern);
       // 表示の出し入れ: 覚えていればそれ、無ければ Google 側のチェック（selected）
       var saved = {};
       try { saved = JSON.parse(pget('visible') || '{}') || {}; } catch (e) { saved = {}; }
@@ -1607,6 +1903,9 @@ var CalendarView = (function () {
         miniMonth(),
         calGroup('マイカレンダー', mine, 'mine'),
         calGroup('他のカレンダー', others, 'others'),
+        h('label', { class: 'cal-wl-toggle', title: '自宅・オフィスなどの勤務場所を、日付の下と時刻の列の右端に出す' },
+          h('input', { type: 'checkbox', 'data-act': 'wl-toggle', checked: S.wlOn, onchange: function (e) { S.wlOn = !!e.target.checked; pset('wl', S.wlOn ? '1' : '0'); draw(); } }),
+          UI.icon('home'), h('span', null, '勤務場所を出す')),
         h('nav', { class: 'cal-side-links' }, NAV.map(function (n) { return navItem(n, n[1]); })),
         S.mock ? h('div', { class: 'a-mock cal-mock' }, 'モック表示中', h('small', null, 'カレンダー・メール・Meet はすべて作りものです')) : null
       ]);
@@ -1667,7 +1966,7 @@ var CalendarView = (function () {
       sc = elMain.querySelector('.cal-scroll');
       if (sc) {
         var sb = sc.offsetWidth - sc.clientWidth;
-        ['.cal-head', '.cal-allday'].forEach(function (sel) { var x = elMain.querySelector(sel); if (x) x.style.paddingRight = sb + 'px'; });
+        ['.cal-head', '.cal-wlrow', '.cal-allday'].forEach(function (sel) { var x = elMain.querySelector(sel); if (x) x.style.paddingRight = sb + 'px'; });
         sc.scrollTop = S.scrollTop >= 0 ? S.scrollTop : 7 * HOUR_PX;
         sc.addEventListener('scroll', function () { S.scrollTop = sc.scrollTop; });
       }
@@ -1700,10 +1999,11 @@ var CalendarView = (function () {
       var daysEl = h('div', { class: 'cal-days', style: 'grid-template-columns:repeat(' + n + ',minmax(0,1fr))' }, days.map(function (d) { return dayCol(d, byDay[d], t, now, g); }));
       daysEl.addEventListener('pointerdown', onGridDown);
       var scroll = h('div', { class: 'cal-scroll' }, h('div', { class: 'cal-time', style: 'height:' + (24 * HOUR_PX) + 'px' }, gutter, daysEl));
-      return h('div', { class: 'cal-grid', 'data-grid': p.view, 'data-loaded': covered(p.from, p.to) ? '1' : '0' }, head, allday, scroll);
+      return h('div', { class: 'cal-grid' + (S.wlOn ? ' has-wl' : ''), 'data-grid': p.view, 'data-loaded': covered(p.from, p.to) ? '1' : '0' }, head, S.wlOn ? wlRow(days, t) : null, allday, scroll);
     }
     function dayCol(d, segs, t, now, g) {
       var col = h('div', { class: 'cal-daycol' + (d === t ? ' is-today' : ''), 'data-day': d });
+      if (S.wlOn) col.appendChild(wlBars(d));
       var evs = h('div', { class: 'cal-evs' });
       NC.layoutDay(segs, { minMs: MIN_SHOW * MIN }).forEach(function (L) { evs.appendChild(evBox(L.item, L, d, now, g)); });
       col.appendChild(evs);
@@ -1776,7 +2076,7 @@ var CalendarView = (function () {
         var d = NC.addDays(w.startYmd, c), q = NC.splitYmd(d), inMonth = d.slice(0, 7) === p.first.slice(0, 7);
         row.appendChild(h('div', { class: 'cal-mcell' + (inMonth ? '' : ' is-out') + (d === t ? ' is-today' : '') + (d < t ? ' is-past' : ''), 'data-cell': d },
           h('button', { type: 'button', class: 'cal-mnum', 'data-daynum': d, 'aria-label': fmtMd(d) + ' の日の表へ', onclick: function () { setView('day', d); } },
-            q.d === 1 ? q.m + '月 ' + q.d + '日' : String(q.d))));
+            q.d === 1 ? q.m + '月 ' + q.d + '日' : String(q.d)), S.wlOn ? wlMark(d) : null));
       });
       var items = [], overflow = {}, more = [];
       w.items.forEach(function (it) { var m = mapCols(it, cols); if (m) items.push({ it: it, col: m.col, span: m.span, clipL: it.clipL || m.cutL, clipR: it.clipR || m.cutR }); });
@@ -1812,6 +2112,224 @@ var CalendarView = (function () {
       }
       el._ev = ev;
       return el;
+    }
+
+    // ================= 勤務場所（06_機能要件_勤務場所.md） =================
+    // 札（日付の下の段）・帯（時刻の列の右の余白）・月の表の印・小窓。中身の決めは wl.js（NC.wlDay・NC.wlMerge）
+    var WL_ICON = { home: 'home', office: 'office', other: 'pin' };
+    function wlItems() { var out = []; Object.keys(S.wl).forEach(function (k) { out.push(S.wl[k]); }); return out; }
+    function wlOf(d) { return NC.wlDay(d, wlItems(), S.wlPattern, S.tz); }
+    // 色と印は名前を先に見る（ジーネクストでは、題名が「オフィス」でも種類が自宅の日がある）
+    function wlKind(x) { return NC.wlSameName(x.label, NC.WL_NAMES.home) ? 'home' : (NC.wlSameName(x.label, NC.WL_NAMES.office) ? 'office' : (WL_ICON[x.type] ? x.type : 'other')); }
+    function wlTouches(x, d) {
+      if (x.allDay) return x.startDate <= d && d < x.endDate;
+      return x.end > dayStart(d) && x.start < dayStart(NC.addDays(d, 1));
+    }
+    function wlTip(d, r) {
+      var lines = [fmtMd(d) + ' の勤務場所'];
+      NC.wlMerge(r.own).forEach(function (x) { lines.push(x.label + '  ' + NC.wlRange(x) + (x.src === 'pattern' ? '（いつもの形）' : '')); });
+      NC.wlMerge(r.google).forEach(function (x) { lines.push('G ' + x.label + '  ' + NC.wlRange(x) + '（' + nameOf(x.calId) + '）'); });
+      r.clash.forEach(function (x) { lines.push('! ' + NC.wlRange(x) + ' は場所が違います（自分: ' + x.own + ' ／ G: ' + x.google + '）'); });
+      if (lines.length === 1) lines.push('押すと場所を置けます');
+      return lines.join('\n');
+    }
+    // g: Google 本来の分の札。small: 印だけ（自分の場所の札と並ぶ時は、細い列でも読めるように字を省く）
+    function wlChip(segs, g, small) {
+      var first = segs[0], names = [];
+      segs.forEach(function (x) { if (!names.some(function (n) { return NC.wlSameName(n, x.label); })) names.push(x.label); });
+      var whole = first.a === 0 && first.b === 1440, pat = !g && segs.every(function (x) { return x.src === 'pattern'; });
+      var cls = 'cal-wlchip k-' + wlKind(first) + (g ? ' is-g' : '') + (small ? ' is-small' : '') + (pat ? ' is-pat' : '');
+      // 場所が 2 つ以上の日は、場所ごとの印だけを並べる（細い列でも、何か所あるかが分かる。名前は札に重ねた説明と小窓で）
+      if (names.length > 1 && !small) {
+        return h('span', { class: cls + ' is-multi' }, g ? h('span', { class: 'cal-wl-g' }, 'G') : null, names.slice(0, 3).map(function (n) {
+          var x = segs.filter(function (y) { return NC.wlSameName(y.label, n); })[0];
+          return h('span', { class: 'cal-wlchip-i k-' + wlKind(x) }, UI.icon(WL_ICON[wlKind(x)]));
+        }));
+      }
+      var text = names[0] + (segs.length === 1 && !whole ? ' ' + NC.wlRange(first) : '');
+      return h('span', { class: cls }, g ? h('span', { class: 'cal-wl-g' }, 'G') : null, UI.icon(WL_ICON[wlKind(first)]), small ? null : h('span', { class: 'cal-wlchip-t' }, text));
+    }
+    function wlRow(days, t) {
+      return h('div', { class: 'cal-wlrow' }, h('div', { class: 'cal-gut cal-gut-wl' }, '場所'), days.map(function (d) { return wlCell(d, t); }));
+    }
+    function wlCell(d, t) {
+      var r = wlOf(d), own = NC.wlMerge(r.own), goo = NC.wlMerge(r.google), same = own.length > 0 && goo.length > 0 && !r.clash.length;
+      var el = h('button', { type: 'button', class: 'cal-wlc' + (d === t ? ' is-today' : '') + (r.clash.length ? ' is-clash' : '') + (own.length || goo.length ? '' : ' is-empty'),
+        'data-wl': d, title: wlTip(d, r), 'aria-label': fmtMd(d) + ' の勤務場所', onclick: function (e) { openWl(d, e.currentTarget.getBoundingClientRect()); } });
+      if (own.length) el.appendChild(wlChip(own, false));
+      if (goo.length && !same) el.appendChild(wlChip(goo, true, own.length > 0));
+      if (same) el.appendChild(h('span', { class: 'cal-wl-g is-ok', title: nameOf(goo[0].calId) + ' の勤務場所と同じ' }, 'G'));
+      if (r.clash.length) el.appendChild(h('span', { class: 'cal-wl-clash', 'data-wlclash': d, title: '場所が違う時間があります' }, '!'));
+      if (!own.length && !goo.length) el.appendChild(h('span', { class: 'cal-wlc-add' }, UI.icon('plus'), '場所'));
+      return el;
+    }
+    // 時刻の列の右の余白（予定の箱の外）に、自分の帯と Google の帯。場所が違う時間には縞
+    function wlBars(d) {
+      var r = wlOf(d), box = h('div', { class: 'cal-wlbars' + (r.google.length ? ' is-two' : ''), 'aria-hidden': 'true', 'data-wlbars': d });
+      function bar(x, cls, kind) {
+        return h('div', { class: 'cal-wlbar ' + cls + (kind ? ' k-' + kind : ''), style: 'top:' + (x.a / 60 * HOUR_PX) + 'px;height:' + ((x.b - x.a) / 60 * HOUR_PX) + 'px' });
+      }
+      NC.wlMerge(r.own).forEach(function (x) { box.appendChild(bar(x, 'is-own' + (x.src === 'pattern' ? ' is-pat' : ''), wlKind(x))); });
+      NC.wlMerge(r.google).forEach(function (x) { box.appendChild(bar(x, 'is-g', wlKind(x))); });
+      r.clash.forEach(function (x) { box.appendChild(bar(x, 'is-clash', '')); });
+      return box;
+    }
+    function wlMark(d) {
+      var r = wlOf(d), own = NC.wlMerge(r.own), goo = NC.wlMerge(r.google), x = own[0] || goo[0];
+      if (!x) return null;
+      return h('button', { type: 'button', class: 'cal-mwl k-' + wlKind(x) + (own.length ? '' : ' is-g') + (r.clash.length ? ' is-clash' : ''), 'data-mwl': d, title: wlTip(d, r), 'aria-label': fmtMd(d) + ' の勤務場所',
+        onclick: function (e) { e.stopPropagation(); openWl(d, e.currentTarget.getBoundingClientRect()); } }, UI.icon(WL_ICON[wlKind(x)]));
+    }
+    function wlTimeSelect(cur, isEnd, name, onPick) {
+      var list = [];
+      for (var m = isEnd ? 15 : 0; m <= (isEnd ? 1440 : 1425); m += 15) list.push(m);
+      if (list.indexOf(cur) < 0) { list.push(cur); list.sort(function (a, b) { return a - b; }); }
+      return h('select', { class: 'cal-time', 'data-f': name, 'aria-label': isEnd ? '終わり' : '始まり', value: String(cur), onchange: function (e) { onPick(+e.target.value); } },
+        list.map(function (v) { return h('option', { value: String(v), selected: v === cur }, v === 1440 ? '24:00' : Math.floor(v / 60) + ':' + pad(v % 60)); }));
+    }
+
+    // 小窓: その日まるごとの場所・時間で分ける・直す・消す・Google 本来の分・違う時間・いつもの形
+    function openWl(d, rect) {
+      closePop();
+      var el = h('div', { class: 'cal-pop cal-wlpop', role: 'dialog', 'aria-label': fmtMd(d) + ' の勤務場所', 'data-wlpop': d });
+      var form = null, busy = false, ask = null;     // form: 入力の途中（その他の名前・時間で分ける・直す）。ask: カレンダーを作ってよいかの確認
+      function mine() {
+        return wlItems().filter(function (x) { return x.src === 'own' && wlTouches(x, d); })
+          .sort(function (a, b) { return (b.allDay ? 1 : 0) - (a.allDay ? 1 : 0) || a.start - b.start; });
+      }
+      function run(action, payload, done) {
+        if (busy) return;
+        busy = true; fill();
+        api(action, payload).then(function (r) { busy = false; if (!S.alive) return; done(r || {}); }, function (e) {
+          busy = false;
+          if (!S.alive) return;
+          if (e && e.code === 'need_calendar') { ask = payload; fill(); return; }
+          fill(); fail('勤務場所を保存できませんでした', e);
+        });
+      }
+      // その日の自分の記録を、返ってきた物と入れ替える（重なりで短くした・分けた分も入っている）
+      function saved(r) {
+        Object.keys(S.wl).forEach(function (k) { var x = S.wl[k]; if (x.src === 'own' && wlTouches(x, d)) delete S.wl[k]; });
+        (r.wl || []).forEach(function (x) { S.wl[keyOf(x)] = x; });
+        if (r.calId) S.wlCal = r.calId;
+        ask = null; form = null;
+        draw(); fill();
+      }
+      function place(p) { run('wl.save', Object.assign({ ymd: d }, p), saved); }
+      function remove(x) { run('wl.remove', { id: x.id }, function () { delete S.wl[keyOf(x)]; draw(); fill(); }); }
+      function setPattern(list) {
+        var pat = JSON.parse(JSON.stringify(S.wlPattern)), k = String(NC.dowOf(d)), dow = NC.dowLabel(NC.dowOf(d), 'ja');
+        if (list && list.length) pat[k] = list; else delete pat[k];
+        run('wl.pattern', { pattern: pat }, function (r) {
+          S.wlPattern = NC.wlPattern(r.pattern);
+          draw(); fill();
+          UI.toast(list && list.length ? dow + '曜日のいつもの形にしました' : dow + '曜日のいつもの形を外しました');
+        });
+      }
+      function typeButtons(cur, onPick) {
+        return h('div', { class: 'cal-wl-types', role: 'group', 'aria-label': '場所の種類' }, ['home', 'office', 'other'].map(function (k) {
+          return h('button', { type: 'button', class: 'cal-wl-qb k-' + k + (cur === k ? ' is-on' : ''), 'data-wlt': k, 'aria-pressed': cur === k ? 'true' : 'false', onclick: function () { onPick(k); } }, UI.icon(WL_ICON[k]), NC.WL_NAMES[k]);
+        }));
+      }
+      function fill() {
+        el.textContent = '';
+        var r = wlOf(d), list = mine(), dowN = NC.dowOf(d), dow = NC.dowLabel(dowN, 'ja'), pd = S.wlPattern[String(dowN)] || [];
+        var allDay = list.filter(function (x) { return x.allDay; })[0];
+        UI.append(el, [
+          h('div', { class: 'cal-pop-bar' }, h('button', { type: 'button', class: 'cal-ib', 'data-act': 'close', 'aria-label': '閉じる', title: '閉じる', onclick: function () { closePop(); } }, UI.icon('cross'))),
+          h('h2', { class: 'cal-wl-h' }, fmtMd(d) + ' の勤務場所'),
+          ask ? askBox() : body()
+        ]);
+        function askBox() {
+          return h('div', { class: 'cal-wl-ask', 'data-wlask': '1' },
+            h('p', null, 'Google カレンダーに「勤務場所」というカレンダーを 1 枚作り、そこに場所を残します（Google カレンダーの画面では、チェックを外した状態で作ります）。'),
+            h('p', { class: 'muted' }, '予定ではないので、日程調整の空きや配分には数えません。作るのは、この 1 回だけです。'),
+            h('div', { class: 'cal-pop-actions' },
+              h('button', { type: 'button', class: 'btn ghost', 'data-act': 'wl-ask-no', onclick: function () { ask = null; fill(); } }, 'やめる'),
+              h('button', { type: 'button', class: 'btn primary cal-save', 'data-act': 'wl-create', disabled: busy, onclick: function () { place(Object.assign({}, ask, { create: true })); } }, busy ? '作っています…' : '作って置く')));
+        }
+        function body() {
+          var out = [];
+          // その日まるごと（押すとすぐ置く。その他は名前を聞く）
+          out.push(h('div', { class: 'cal-wl-sec' }, h('div', { class: 'cal-wl-cap' }, 'その日まるごと'),
+            typeButtons(allDay ? (form && form.mode === 'other' ? 'other' : allDay.type) : (form && form.mode === 'other' ? 'other' : ''), function (k) {
+              if (k === 'other') { form = { mode: 'other', label: allDay && allDay.type === 'other' ? allDay.label : '' }; fill(); return; }
+              place({ allDay: true, type: k });
+            })));
+          if (form && form.mode === 'other') out.push(otherForm());
+          // その日の並び（自分の記録。無ければいつもの形）
+          out.push(h('div', { class: 'cal-wl-list', 'data-wllist': d }, rows()));
+          out.push(form && form.mode === 'time' ? timeForm() :
+            h('button', { type: 'button', class: 'btn ghost small cal-wl-split', 'data-act': 'wl-split', disabled: busy, onclick: function () {
+              form = { mode: 'time', id: '', type: allDay && allDay.type === 'home' ? 'office' : 'home', label: '', from: 13 * 60, to: 18 * 60 }; fill();
+            } }, UI.icon('plus'), '時間で分ける'));
+          // Google 本来の勤務場所（見るだけ）
+          var goo = NC.wlMerge(r.google);
+          if (goo.length) {
+            out.push(h('div', { class: 'cal-wl-gsec', 'data-wlg': d },
+              h('div', { class: 'cal-wl-cap' }, h('span', { class: 'cal-wl-g' }, 'G'), nameOf(goo[0].calId) + '（見るだけ。直すのは Google カレンダーで）'),
+              goo.map(function (x) {
+                return h('div', { class: 'cal-wl-row k-' + wlKind(x) }, UI.icon(WL_ICON[wlKind(x)]), h('span', { class: 'cal-wl-row-t' }, x.label), h('span', { class: 'cal-wl-row-s' }, NC.wlRange(x)),
+                  x.htmlLink ? h('a', { class: 'cal-wl-open', href: x.htmlLink, target: '_blank', rel: 'noopener noreferrer' }, '開く') : null);
+              })));
+          }
+          if (r.clash.length) {
+            out.push(h('div', { class: 'cal-wl-warn', 'data-wlwarn': d }, r.clash.map(function (x) {
+              return h('div', null, NC.wlRange(x) + ' は、' + nameOf((goo[0] || {}).calId) + ' では「' + x.google + '」です（自分は「' + x.own + '」）');
+            })));
+          }
+          // いつもの形
+          out.push(h('div', { class: 'cal-wl-pat', 'data-wlpat': String(dowN) },
+            h('span', { class: 'cal-wl-pat-t' }, dow + '曜日のいつもの形: ' + (pd.length ? pd.map(function (x) { return x.label + (x.allDay ? '' : ' ' + NC.wlRange({ a: x.from, b: x.to })); }).join('・') : 'なし')),
+            list.length ? h('button', { type: 'button', class: 'btn ghost small', 'data-act': 'wl-setpat', disabled: busy, onclick: function () { setPattern(NC.wlPatternFromDay(r.own)); } }, 'この日の並びを、いつもの形にする') : null,
+            pd.length ? h('button', { type: 'button', class: 'btn ghost small', 'data-act': 'wl-unpat', disabled: busy, onclick: function () { setPattern(null); } }, '外す') : null));
+          return out;
+        }
+        function rows() {
+          if (!list.length) {
+            if (!pd.length) return h('div', { class: 'cal-wl-none muted' }, 'この日の場所はまだありません。');
+            return NC.wlMerge(r.own).map(function (x) {
+              return h('div', { class: 'cal-wl-row is-pat k-' + wlKind(x) }, UI.icon(WL_ICON[wlKind(x)]), h('span', { class: 'cal-wl-row-t' }, x.label), h('span', { class: 'cal-wl-row-s' }, NC.wlRange(x) + '・いつもの形'));
+            });
+          }
+          return list.map(function (x) {
+            var a = x.allDay ? 0 : NC.minuteOfDay(x.start, d, S.tz), b = x.allDay ? 1440 : NC.minuteOfDay(x.end, d, S.tz);
+            return h('div', { class: 'cal-wl-row k-' + wlKind(x), 'data-wlrow': x.id },
+              UI.icon(WL_ICON[wlKind(x)]), h('span', { class: 'cal-wl-row-t' }, x.label), h('span', { class: 'cal-wl-row-s' }, x.allDay ? 'その日まるごと' : NC.wlRange({ a: a, b: b })),
+              !x.allDay ? h('button', { type: 'button', class: 'cal-ib', 'data-act': 'wl-edit', 'aria-label': x.label + ' を直す', title: '直す', disabled: busy, onclick: function () {
+                form = { mode: 'time', id: x.id, type: x.type, label: x.type === 'other' ? x.label : '', from: a, to: b }; fill();
+              } }, UI.icon('edit')) : null,
+              h('button', { type: 'button', class: 'cal-ib', 'data-act': 'wl-del', 'aria-label': x.label + ' を消す', title: '消す', disabled: busy, onclick: function () { remove(x); } }, UI.icon('trash')));
+          });
+        }
+        function otherForm() {
+          var inp = h('input', { type: 'text', class: 'cal-wl-name', 'data-f': 'wlLabel', maxlength: String(NC.WL_LABEL_MAX), placeholder: '場所の名前（例: 現場・大阪）', value: form.label || '',
+            oninput: function (e) { form.label = e.target.value; }, onkeydown: function (e) { if (e.key === 'Enter') go1(); } });
+          function go1() { if (!String(form.label || '').trim()) { UI.toast('場所の名前を入れてください', true); return; } place({ allDay: true, type: 'other', label: form.label }); }
+          setTimeout(function () { try { inp.focus(); } catch (e) { /* 出ていなければ何もしない */ } }, 0);
+          return h('div', { class: 'cal-wl-form', 'data-wlform': 'other' }, inp,
+            h('button', { type: 'button', class: 'btn ghost small', onclick: function () { form = null; fill(); } }, 'やめる'),
+            h('button', { type: 'button', class: 'btn primary small', 'data-act': 'wl-other-save', disabled: busy, onclick: go1 }, '置く'));
+        }
+        function timeForm() {
+          // 時刻の誤りは選んだ時に出す（選ぶたびに描き直すので）。名前は押した時に確かめる（打つたびには描き直さない）
+          var msg = form.to - form.from >= 15 ? '' : '終わりは、始まりより 15 分以上あとにしてください。';
+          return h('div', { class: 'cal-wl-form', 'data-wlform': 'time' },
+            typeButtons(form.type, function (k) { form.type = k; fill(); }),
+            form.type === 'other' ? h('input', { type: 'text', class: 'cal-wl-name', 'data-f': 'wlLabel', maxlength: String(NC.WL_LABEL_MAX), placeholder: '場所の名前', value: form.label || '', oninput: function (e) { form.label = e.target.value; } }) : null,
+            h('div', { class: 'cal-trow' }, wlTimeSelect(form.from, false, 'wlFrom', function (m) { var len = form.to - form.from; form.from = m; if (form.to <= m) form.to = Math.min(1440, m + Math.max(15, len)); fill(); }),
+              h('span', { class: 'cal-tsep' }, '〜'), wlTimeSelect(form.to, true, 'wlTo', function (m) { form.to = m; fill(); })),
+            msg ? h('div', { class: 'cal-err' }, msg) : null,
+            h('div', { class: 'cal-pop-actions' },
+              h('button', { type: 'button', class: 'btn ghost small', onclick: function () { form = null; fill(); } }, 'やめる'),
+              h('button', { type: 'button', class: 'btn primary small', 'data-act': 'wl-time-save', disabled: busy || !!msg, onclick: function () {
+                if (form.type === 'other' && !String(form.label || '').trim()) { UI.toast('「その他」には、場所の名前を入れてください', true); return; }
+                place({ id: form.id || '', allDay: false, from: form.from, to: form.to, type: form.type, label: form.type === 'other' ? form.label : '' });
+              } }, form.id ? '直す' : '置く')));
+        }
+      }
+      fill();
+      openPop(el, rect, 'detail');
     }
 
     // ================= 小さな窓（押した所の近くに出す） =================
@@ -2644,15 +3162,17 @@ var CalendarView = (function () {
   function api(action, payload) {
     payload = payload || {}; payload.key = KEY;
     return Backend.call(action, payload).catch(function (e) {
-      // 自前のページで、ログインの証の期限が切れた（または持ち主でない）時は、ログインの画面に戻す
-      if (Backend.mode === 'web' && e && e.code === 'forbidden' && Login.has()) Login.expire('ログインの期限が切れました。もう一度ログインしてください。');
+      // 自前のページで、ログインの印・証が通らなくなった時は、ログインの画面に戻す（開く時の断りは start が言葉を選ぶ）
+      if (Backend.mode === 'web' && e && e.code === 'forbidden' && Login.has() && action !== 'admin.init') Login.expire(Login.deniedMsg());
       throw e;
     });
   }
 
-  // 自前のページの「Google でログイン」。証（ID トークン）は、このタブを閉じるまで覚える。切れる 5 分前に、静かに取り直す
+  // 自前のページの「Google でログイン」。ログインできたら、この端末に 30 日のログインの印（session）を覚える
+  // （Yu 2026-10-27「ログイン情報の維持はできる？」。使うたびに延びる。タスクのページと共通の localStorage 'nc:session'）。
+  // 印をもらえない時（古い窓口）は、今まで通り証（ID トークン）をこのタブを閉じるまで覚え、切れる 5 分前に静かに取り直す
   var Login = (function () {
-    var SKEY = 'nc:idToken', timer = null, onReady = null, gisLoading = null;
+    var SKEY = 'nc:idToken', LKEY = 'nc:session', timer = null, onReady = null, gisLoading = null;
     function decode(t) {
       try { var p = t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'); return JSON.parse(decodeURIComponent(escape(atob(p + '==='.slice((p.length + 3) % 4))))); } catch (e) { return null; }
     }
@@ -2662,10 +3182,22 @@ var CalendarView = (function () {
       Backend.idToken = t;
       try { sessionStorage.setItem(SKEY, JSON.stringify({ t: t, exp: c.exp })); } catch (e) { /* 覚えられなくても、今は使える */ }
       clearTimeout(timer);
-      timer = setTimeout(function () { gis().then(function (g) { g.accounts.id.prompt(); }, function () {}); }, Math.max(60000, c.exp * 1000 - Date.now() - 5 * 60000));
+      timer = setTimeout(function () { gis().then(function (g) { g.accounts.id.prompt(); }, function () {}); }, Math.min(3600000, Math.max(60000, c.exp * 1000 - Date.now() - 5 * 60000)));   // 長くても 1 時間ごと（setTimeout は 24.8 日を超えるとすぐ走る）
       return true;
     }
+    function keep(s) {
+      Backend.session = s; Backend.idToken = ''; clearTimeout(timer);
+      try { localStorage.setItem(LKEY, JSON.stringify({ s: s, at: Date.now() })); } catch (e) { /* 覚えられなくても、このタブでは使える */ }
+    }
+    // 証で窓口に「この端末を覚えて」と頼む。古い窓口で断られたら、証だけで続ける
+    function remember() {
+      return Backend.call('auth.remember', {}).then(function (r) { if (r && typeof r.session === 'string' && r.session.length >= 40) keep(r.session); }, function () { /* 証だけで続ける */ });
+    }
     function restore() {
+      try {
+        var y = JSON.parse(localStorage.getItem(LKEY) || 'null');
+        if (y && typeof y.s === 'string' && y.s.length >= 40) { Backend.session = y.s; return true; }
+      } catch (e) { /* 読めなければ、ログインし直す */ }
       try {
         var x = JSON.parse(sessionStorage.getItem(SKEY) || 'null');
         if (x && x.t && x.exp * 1000 > Date.now() + 60000) return save(x.t);
@@ -2673,8 +3205,9 @@ var CalendarView = (function () {
       return false;
     }
     function clear() {
-      Backend.idToken = ''; clearTimeout(timer);
+      Backend.idToken = ''; Backend.session = ''; clearTimeout(timer);
       try { sessionStorage.removeItem(SKEY); } catch (e) { /* 消せなくても困らない */ }
+      try { localStorage.removeItem(LKEY); } catch (e) { /* 消せなくても困らない */ }
     }
     function gis() {
       if (gisLoading) return gisLoading;
@@ -2685,7 +3218,7 @@ var CalendarView = (function () {
           if (!window.google || !google.accounts || !google.accounts.id) { reject(new Error('gis')); return; }
           google.accounts.id.initialize({
             client_id: (window.NC_WEB && NC_WEB.clientId) || '', auto_select: true, cancel_on_tap_outside: false,
-            callback: function (resp) { if (resp && resp.credential && save(resp.credential) && onReady) onReady(); }
+            callback: function (resp) { if (resp && resp.credential && save(resp.credential)) remember().then(function () { if (onReady) onReady(); }); }
           });
           resolve(google);
         };
@@ -2711,11 +3244,21 @@ var CalendarView = (function () {
     }
     var start = null;
     return {
-      has: function () { return !!Backend.idToken; },
+      has: function () { return !!(Backend.idToken || Backend.session); },
+      remembered: function () { return !!Backend.session; },
+      // 断られた時の言葉: 印で断られた = 期限切れか、ほかの端末で消された。証で断られた = 持ち主ではないアカウント
+      deniedMsg: function () { return Backend.session ? 'ログインの期限が切れました。もう一度ログインしてください。' : Backend.idToken ? 'このアカウントでは開けません。持ち主のアカウントでログインしてください。' : ''; },
       restore: restore,
       screen: screen,
       setStart: function (fn) { start = fn; },
-      expire: function (msg) { clear(); if (start) screen(msg, start); }
+      expire: function (msg) { clear(); if (start) screen(msg, start); },
+      // ログアウト: この端末の印を窓口からも消し、Google の自動ログインも止める（止めないと、ログインの画面ですぐまた入ってしまう）
+      logout: function () {
+        var s = Backend.session;
+        clear();
+        if (s) Backend.call('auth.forget', { forget: s }).then(function () {}, function () {});
+        gis().then(function (g) { g.accounts.id.disableAutoSelect(); }, function () {}).then(function () { if (start) screen('ログアウトしました。この端末のログインも消しました。', start); });
+      }
     };
   })();
   function oops(e) { UI.toast((e && e.message) || 'うまく処理できませんでした', true); }
@@ -3168,7 +3711,7 @@ var CalendarView = (function () {
       api('admin.saveSettings', { settings: s }).then(reload).then(function () { UI.toast('保存しました'); render(); }, oops);
     }
     function rotate() {
-      api('admin.rotateKey').then(function (r) {
+      api('admin.rotateKey', { keep: Backend.session || '' }).then(function (r) {
         KEY = r.adminKey;
         keepKey(true);
         rotated = r.adminUrl || ('（公開した URL）?admin=' + r.adminKey);
@@ -3209,12 +3752,14 @@ var CalendarView = (function () {
           } }, 'この端末で覚える');
           return h('div', { class: 'urlrow' }, el, btn);
         })(), 'メニューの「マイエージェント」で開く先です。空なら ' + ((window.NC_LINKS && NC_LINKS.agent) || 'http://127.0.0.1:8179/') +
-          '（この Mac 用）。iPhone など別の端末では、その端末で合言葉（token）つきの URL を 1 回貼ってください。URL はこの端末の中だけに覚え、どこにも送りません。')),
+          '（この Mac 用）。iPhone など別の端末では、その端末で合言葉（token）つきの URL を 1 回貼ってください。URL はこの端末の中だけに覚え、どこにも送りません。'),
+        Backend.mode === 'web' && Login.remembered() ? row('ログイン', h('button', { type: 'button', class: 'btn', 'data-act': 'logout', onclick: function () { Login.logout(); } }, 'この端末からログアウト'),
+          'Google でログインした状態を、この端末に 30 日覚えています（使うたびに延びます。タスクのページと共通）。') : null),
       h('section', { class: 'card sec' }, h('h2', null, '安全'),
-        h('p', { class: 'muted' }, '管理画面の URL に入っている合言葉は、全部のカレンダーを読み書きできる鍵です。漏れたかもしれない時は、作り直してください。古い URL はその瞬間から使えなくなります。'),
+        h('p', { class: 'muted' }, '管理画面の URL に入っている合言葉は、全部のカレンダーを読み書きできる鍵です。漏れたかもしれない時や、ログインしたままの端末をなくした時は、作り直してください。古い URL はその瞬間から使えなくなり、この端末以外のログインも全部消えます。'),
         rotated ? h('div', { class: 'banner', 'data-rotated': '1' }, h('b', null, '新しい管理画面の URL（控えてください。古い URL は、もう使えません）'),
           h('div', { class: 'urlrow', style: 'margin-top:8px' }, urlBox(rotated), h('button', { type: 'button', class: 'btn', onclick: function () { copy(rotated, 'URL をコピーしました'); } }, 'コピー'))) : null,
-        h('div', { class: 'inline', style: 'padding-top:8px' }, (function () { var b = confirmBtn('合言葉を作り直す', '本当に作り直す（古い URL は使えなくなります）', rotate, 'danger-ghost'); b.setAttribute('data-act', 'rotate'); return b; })())),
+        h('div', { class: 'inline', style: 'padding-top:8px' }, (function () { var b = confirmBtn('合言葉を作り直す', '本当に作り直す（古い URL と、ほかの端末のログインが使えなくなります）', rotate, 'danger-ghost'); b.setAttribute('data-act', 'rotate'); return b; })())),
       D.mock ? h('section', { class: 'card sec' }, h('h2', null, 'モック'),
         h('p', { class: 'muted' }, 'モックで作ったデータ（日程調整カレンダー・予約・メール）は、このブラウザの中だけにあります。'),
         confirmBtn('モックのデータを最初に戻す', '本当に戻す', function () { Backend.reset(); reload().then(function () { UI.toast('最初の見本に戻しました'); go('list'); }, oops); }, '')) : null);
@@ -3287,7 +3832,7 @@ var CalendarView = (function () {
     reload().then(function () { keepKey(false); render(); }, function (e) {
       var noKey = !!(e && e.code === 'forbidden');
       // 自前のページ: ログインしたのに断られた＝持ち主ではないアカウント。ログインの画面に戻す
-      if (Backend.mode === 'web' && noKey) { Login.expire(Login.has() ? 'このアカウントでは開けません。持ち主のアカウントでログインしてください。' : ''); return; }
+      if (Backend.mode === 'web' && noKey) { Login.expire(Login.deniedMsg()); return; }
       root.innerHTML = '';
       root.appendChild(h('div', { class: 'g-wrap' }, h('div', { class: 'g-error', 'data-error': noKey ? 'key' : 'init' },
         h('h2', null, noKey ? '合言葉の入った URL で開いてください' : '管理画面を開けませんでした'),

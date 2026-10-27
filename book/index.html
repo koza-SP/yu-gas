@@ -489,6 +489,72 @@ input.cal-al-date{width:128px;padding:5px 6px;font-size:13px}
 .cal-al-actions{margin-top:10px;display:flex;gap:8px}
 .cal-al-empty{color:var(--sub);font-size:13px;padding:12px 0}
 
+/* 勤務場所（06_機能要件_勤務場所.md）: 日付の下の札・時刻の列の右の余白の帯・月の表の印・小窓。色は種類で決まる */
+.cal{--wl-home:#188038;--wl-office:#1967d2;--wl-other:#5f6368}
+@media (prefers-color-scheme:dark){.cal{--wl-home:#81c995;--wl-office:#8ab4f8;--wl-other:#bdc1c6}}
+.k-home{--wlc:var(--wl-home)}.k-office{--wlc:var(--wl-office)}.k-other{--wlc:var(--wl-other)}
+.cal-wlrow{display:flex;flex:none;border-bottom:1px solid var(--line)}
+.cal-gut-wl{font-size:10px;color:var(--sub);text-align:right;padding:5px 10px 0 0;white-space:nowrap}
+.cal-wlc{flex:1;min-width:0;display:flex;align-items:center;gap:3px;height:24px;padding:0 4px;border:0;border-left:1px solid var(--line);background:transparent;color:var(--ink);font-size:11px;line-height:1;cursor:pointer;overflow:hidden;text-align:left}
+.cal-wlc:hover,.cal-wlc:focus-visible{background:var(--line);outline:none}
+.cal-wlc-add{display:inline-flex;align-items:center;gap:2px;color:var(--sub);opacity:0}
+.cal-wlc-add .ic{width:12px;height:12px}
+.cal-wlc:hover .cal-wlc-add,.cal-wlc:focus-visible .cal-wlc-add{opacity:1}
+.cal-wlchip{display:inline-flex;align-items:center;gap:3px;min-width:0;height:18px;padding:0 6px 0 4px;border-radius:9px;border:1px solid transparent;background:color-mix(in srgb,var(--wlc) 13%,transparent);color:var(--wlc);font-weight:600;white-space:nowrap;overflow:hidden}
+.cal-wlchip .ic{width:12px;height:12px}
+.cal-wlchip-t{overflow:hidden;text-overflow:ellipsis}
+.cal-wlchip.is-pat{background:transparent;border-style:dashed;border-color:color-mix(in srgb,var(--wlc) 55%,transparent);font-weight:500}
+.cal-wlchip.is-g{background:transparent;border-color:color-mix(in srgb,var(--wlc) 40%,transparent);font-weight:500}
+.cal-wlchip.is-small{padding:0 3px;flex:none}
+.cal-wlchip.is-multi{padding:0 4px;gap:2px;flex:none;background:transparent;border-color:var(--line2)}
+.cal-wlchip-i{display:inline-flex;color:var(--wlc)}
+.cal-wl-g{display:inline-flex;align-items:center;justify-content:center;width:12px;height:12px;border-radius:3px;background:var(--sub);color:var(--card);font-size:9px;font-weight:700;line-height:1;flex:none}
+.cal-wl-g.is-ok{background:transparent;color:var(--sub);border:1px solid var(--line2)}
+.cal-wl-clash{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:var(--danger);color:#fff;font-size:10px;font-weight:700;flex:none}
+.cal-wlbars{position:absolute;right:1px;top:0;bottom:0;width:9px;pointer-events:none;z-index:1}
+.cal-wlbar{position:absolute;right:3px;width:3px;border-radius:2px;background:var(--wlc)}
+.cal-wlbars.is-two .cal-wlbar.is-own{right:5px}
+.cal-wlbar.is-pat{opacity:.5}
+.cal-wlbar.is-g{right:1px;opacity:.55}
+.cal-wlbar.is-clash{right:0;width:9px;border-radius:0;background:repeating-linear-gradient(180deg,var(--danger) 0 3px,transparent 3px 6px);opacity:.75}
+.cal-mcell{position:relative}
+.cal-mwl{position:absolute;top:3px;right:3px;width:20px;height:20px;border:0;border-radius:50%;background:transparent;color:var(--wlc);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+.cal-mwl:hover{background:var(--line)}
+.cal-mwl .ic{width:14px;height:14px}
+.cal-mwl.is-g{opacity:.65}
+.cal-mwl.is-clash::after{content:"";position:absolute;top:1px;right:1px;width:6px;height:6px;border-radius:50%;background:var(--danger)}
+.cal-wl-toggle{display:flex;align-items:center;gap:8px;margin:10px 0 0;padding:6px 8px;border-radius:8px;font-size:13px;cursor:pointer;color:var(--ink)}
+.cal-wl-toggle:hover{background:var(--line)}
+.cal-wl-toggle .ic{width:16px;height:16px;color:var(--wl-home)}
+.cal-wlpop{width:380px}
+.cal-wl-h{font-size:16px;font-weight:600;margin:0 0 8px}
+.cal-wl-sec{margin:0 0 8px}
+.cal-wl-cap{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--sub);margin:0 0 4px}
+.cal-wl-types{display:flex;gap:6px;flex-wrap:wrap}
+.cal-wl-qb{display:inline-flex;align-items:center;gap:5px;height:30px;padding:0 11px;border:1px solid var(--line2);border-radius:15px;background:var(--card);color:var(--ink);cursor:pointer;font-size:13px}
+.cal-wl-qb .ic{width:15px;height:15px;color:var(--wlc)}
+.cal-wl-qb:hover{background:var(--line)}
+.cal-wl-qb.is-on{border-color:var(--wlc);background:color-mix(in srgb,var(--wlc) 12%,transparent);color:var(--wlc);font-weight:600}
+.cal-wl-list{display:flex;flex-direction:column;gap:1px;margin:4px 0 6px;border-top:1px solid var(--line);padding-top:6px}
+.cal-wl-row{display:flex;align-items:center;gap:8px;min-height:30px;padding:0 2px}
+.cal-wl-row > .ic{width:16px;height:16px;color:var(--wlc)}
+.cal-wl-row-t{font-weight:600;font-size:14px;white-space:nowrap}
+.cal-wl-row-s{color:var(--sub);font-size:12px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cal-wl-row.is-pat{opacity:.8}
+.cal-wl-row .cal-ib{width:30px;height:30px}
+.cal-wl-row .cal-ib .ic{width:16px;height:16px}
+.cal-wl-open{font-size:12px}
+.cal-wl-none{font-size:13px;padding:4px 2px}
+.cal-wl-split{margin:0 0 6px}
+.cal-wl-form{display:flex;flex-direction:column;gap:8px;padding:10px;border:1px solid var(--line);border-radius:10px;margin:2px 0 8px}
+.cal-wl-form input.cal-wl-name{padding:6px 10px;font-size:14px}
+.cal-wl-form .cal-pop-actions{margin-top:0}
+.cal-wl-gsec{border-top:1px solid var(--line);padding-top:6px;margin-top:4px}
+.cal-wl-warn{background:var(--danger-soft);color:var(--danger);border-radius:8px;padding:6px 10px;font-size:12px;margin:6px 0;line-height:1.5}
+.cal-wl-pat{display:flex;flex-wrap:wrap;align-items:center;gap:4px;border-top:1px solid var(--line);padding-top:8px;margin-top:6px;font-size:12px;color:var(--sub)}
+.cal-wl-pat-t{flex:1 1 100%}
+.cal-wl-ask p{font-size:13px;margin:0 0 8px;line-height:1.6}
+
 /* 狭い画面のカレンダー */
 @media (max-width:1100px){
   .cal-links{display:none}
@@ -516,6 +582,12 @@ input.cal-al-date{width:128px;padding:5px 6px;font-size:13px}
   .cal-hd-num{width:34px;height:34px;font-size:18px;line-height:34px}
   .cal-hd{padding-top:4px}
   .cal-evs{right:6px}
+  .cal-wlbars{width:6px;right:0}
+  .cal-wlbar{right:2px;width:2px}
+  .cal-wlbars.is-two .cal-wlbar.is-own{right:3px}
+  .cal-wlbar.is-g{right:0}
+  .cal-wlbar.is-clash{width:6px}
+  .cal-grid[data-grid=week] .cal-wlchip-t{display:none}
   .cal-ev.is-draft,.cal-ev.is-ghost{right:6px}
   .cal-dialog{border-radius:0;width:100%;height:100%;max-height:none}
   .cal-modal{padding:0}
@@ -646,16 +718,21 @@ var NC = (typeof NC !== 'undefined') ? NC : {};
 // ---- web/js/backend-http.js ----
 // 自前のページ（workspace.glowball-ec.com）用の裏側。GAS の JSON の窓口（doPost）を fetch で呼ぶ。
 // GAS の画面ではないので、Google の「このアプリケーションは…」の帯が出ない。
-// 管理の操作には、「Google でログイン」で得た証（ID トークン）を付ける（admin.js が Backend.idToken に入れる）
+// 管理の操作には持ち主の証を付ける。この端末のログインの印（session。30 日）があればそれ、無ければ「Google でログイン」の証（ID トークン）。
+// どちらも admin.js が入れる。付けないのは相手向けの操作（guest.*）だけ（操作の名前で選ぶと、新しく足した操作に付け忘れる）
 var Backend = {
   mode: 'web',
   exec: (window.NC_WEB && window.NC_WEB.exec) || '',
   idToken: '',
+  session: '',
   call: function (action, payload) {
     var body = {}, k;
     payload = payload || {};
     for (k in payload) if (Object.prototype.hasOwnProperty.call(payload, k)) body[k] = payload[k];
-    if (Backend.idToken && /^(admin|cal)\./.test(String(action))) body.idToken = Backend.idToken;
+    if (!/^guest\./.test(String(action))) {
+      if (Backend.session) body.session = Backend.session;
+      else if (Backend.idToken) body.idToken = Backend.idToken;
+    }
     // text/plain で送る（JSON の型にすると、ブラウザが事前の問い合わせを挟み、GAS がそれに答えられない）
     return fetch(Backend.exec, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: action, payload: body }), redirect: 'follow' })
       .then(function (res) { return res.text(); }, function () {
@@ -699,6 +776,9 @@ var UI = (function () {
     more: '<circle cx="12" cy="5" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="12" cy="19" r="1.2"/>',
     lock: '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/>',
     chart: '<path d="M5 20V11M12 20V5M19 20v-6M3 20h18"/>',
+    // 勤務場所（自宅・オフィス。その他は pin）
+    home: '<path d="M4 11.5L12 5l8 6.5"/><path d="M6.5 10v9.5h11V10"/><path d="M10.2 19.5v-5h3.6v5"/>',
+    office: '<rect x="5" y="3.5" width="14" height="17" rx="1.5"/><path d="M9 7.5h2M13 7.5h2M9 11h2M13 11h2M9 14.5h2M13 14.5h2M11 20.5v-3h2v3"/>',
     palette: '<path d="M12 3a9 9 0 100 18c1.2 0 2-.8 2-2 0-.6-.3-1-.6-1.4-.3-.4-.4-.7-.4-1.1 0-1 .8-1.8 1.8-1.8H17a4 4 0 004-4c0-4.4-4-7.7-9-7.7z"/><circle cx="7.5" cy="11.5" r="1.2"/><circle cx="10.5" cy="7.5" r="1.2"/><circle cx="15" cy="7.5" r="1.2"/>'
   };
   var TZS = ['Asia/Tokyo', 'Asia/Seoul', 'Asia/Shanghai', 'Asia/Hong_Kong', 'Asia/Taipei', 'Asia/Singapore', 'Asia/Bangkok', 'Asia/Kolkata',

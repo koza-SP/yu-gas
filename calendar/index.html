@@ -545,7 +545,6 @@ input.cal-al-date{width:128px;padding:5px 6px;font-size:13px}
 .cal-wl-row .cal-ib .ic{width:16px;height:16px}
 .cal-wl-open{font-size:12px}
 .cal-wl-none{font-size:13px;padding:4px 2px}
-.cal-wl-split{margin:0 0 6px}
 .cal-wl-form{display:flex;flex-direction:column;gap:8px;padding:10px;border:1px solid var(--line);border-radius:10px;margin:2px 0 8px}
 .cal-wl-form input.cal-wl-name{padding:6px 10px;font-size:14px}
 .cal-wl-form .cal-pop-actions{margin-top:0}
@@ -2188,11 +2187,12 @@ var CalendarView = (function () {
         list.map(function (v) { return h('option', { value: String(v), selected: v === cur }, v === 1440 ? '24:00' : Math.floor(v / 60) + ':' + pad(v % 60)); }));
     }
 
-    // 小窓: その日まるごとの場所・時間で分ける・直す・消す・Google 本来の分・違う時間・いつもの形
+    // 小窓: 時間で置く・直す・消す・Google 本来の分・違う時間・いつもの形。
+    // 置くのは時間だけ（Yu 2026-10-27「勤務場所は時間単位で一日終日は使わない」→ その日まるごとは出さない。前に入った終日の記録は出して、直すと時間になる）
     function openWl(d, rect) {
       closePop();
       var el = h('div', { class: 'cal-pop cal-wlpop', role: 'dialog', 'aria-label': fmtMd(d) + ' の勤務場所', 'data-wlpop': d });
-      var form = null, busy = false, ask = null;     // form: 入力の途中（その他の名前・時間で分ける・直す）。ask: カレンダーを作ってよいかの確認
+      var form = null, busy = false, ask = null;     // form: 時間を決める欄（置く・直す）。ask: カレンダーを作ってよいかの確認
       function mine() {
         return wlItems().filter(function (x) { return x.src === 'own' && wlTouches(x, d); })
           .sort(function (a, b) { return (b.allDay ? 1 : 0) - (a.allDay ? 1 : 0) || a.start - b.start; });
@@ -2226,6 +2226,13 @@ var CalendarView = (function () {
           UI.toast(list && list.length ? dow + '曜日のいつもの形にしました' : dow + '曜日のいつもの形を外しました');
         });
       }
+      // 新しく置く時の時間: その日の自分の時間の記録のうち、いちばん遅い終わりから 18:00 まで（18:00 を過ぎていれば 1 時間）。無ければ 9:00〜18:00
+      function newForm(k) {
+        var last = 0;
+        mine().forEach(function (x) { if (!x.allDay) last = Math.max(last, NC.minuteOfDay(x.end, d, S.tz)); });
+        var a = last ? Math.min(last, 1425) : 540, b = a < 1080 ? 1080 : Math.min(a + 60, 1440);
+        return { mode: 'time', id: '', type: k, label: '', from: a, to: b, focusName: k === 'other' };
+      }
       function typeButtons(cur, onPick) {
         return h('div', { class: 'cal-wl-types', role: 'group', 'aria-label': '場所の種類' }, ['home', 'office', 'other'].map(function (k) {
           return h('button', { type: 'button', class: 'cal-wl-qb k-' + k + (cur === k ? ' is-on' : ''), 'data-wlt': k, 'aria-pressed': cur === k ? 'true' : 'false', onclick: function () { onPick(k); } }, UI.icon(WL_ICON[k]), NC.WL_NAMES[k]);
@@ -2234,7 +2241,6 @@ var CalendarView = (function () {
       function fill() {
         el.textContent = '';
         var r = wlOf(d), list = mine(), dowN = NC.dowOf(d), dow = NC.dowLabel(dowN, 'ja'), pd = S.wlPattern[String(dowN)] || [];
-        var allDay = list.filter(function (x) { return x.allDay; })[0];
         UI.append(el, [
           h('div', { class: 'cal-pop-bar' }, h('button', { type: 'button', class: 'cal-ib', 'data-act': 'close', 'aria-label': '閉じる', title: '閉じる', onclick: function () { closePop(); } }, UI.icon('cross'))),
           h('h2', { class: 'cal-wl-h' }, fmtMd(d) + ' の勤務場所'),
@@ -2250,19 +2256,12 @@ var CalendarView = (function () {
         }
         function body() {
           var out = [];
-          // その日まるごと（押すとすぐ置く。その他は名前を聞く）
-          out.push(h('div', { class: 'cal-wl-sec' }, h('div', { class: 'cal-wl-cap' }, 'その日まるごと'),
-            typeButtons(allDay ? (form && form.mode === 'other' ? 'other' : allDay.type) : (form && form.mode === 'other' ? 'other' : ''), function (k) {
-              if (k === 'other') { form = { mode: 'other', label: allDay && allDay.type === 'other' ? allDay.label : '' }; fill(); return; }
-              place({ allDay: true, type: k });
-            })));
-          if (form && form.mode === 'other') out.push(otherForm());
+          // 置く: 種類を押すと、同じ所が時間を決める欄に変わる（欄の中でも種類を替えられる。直す時も同じ欄）
+          out.push(form && form.mode === 'time' ? timeForm() :
+            h('div', { class: 'cal-wl-sec' }, h('div', { class: 'cal-wl-cap' }, '場所を置く（時間で）'),
+              typeButtons('', function (k) { form = newForm(k); fill(); })));
           // その日の並び（自分の記録。無ければいつもの形）
           out.push(h('div', { class: 'cal-wl-list', 'data-wllist': d }, rows()));
-          out.push(form && form.mode === 'time' ? timeForm() :
-            h('button', { type: 'button', class: 'btn ghost small cal-wl-split', 'data-act': 'wl-split', disabled: busy, onclick: function () {
-              form = { mode: 'time', id: '', type: allDay && allDay.type === 'home' ? 'office' : 'home', label: '', from: 13 * 60, to: 18 * 60 }; fill();
-            } }, UI.icon('plus'), '時間で分ける'));
           // Google 本来の勤務場所（見るだけ）
           var goo = NC.wlMerge(r.google);
           if (goo.length) {
@@ -2295,37 +2294,35 @@ var CalendarView = (function () {
           return list.map(function (x) {
             var a = x.allDay ? 0 : NC.minuteOfDay(x.start, d, S.tz), b = x.allDay ? 1440 : NC.minuteOfDay(x.end, d, S.tz);
             return h('div', { class: 'cal-wl-row k-' + wlKind(x), 'data-wlrow': x.id },
-              UI.icon(WL_ICON[wlKind(x)]), h('span', { class: 'cal-wl-row-t' }, x.label), h('span', { class: 'cal-wl-row-s' }, x.allDay ? 'その日まるごと' : NC.wlRange({ a: a, b: b })),
-              !x.allDay ? h('button', { type: 'button', class: 'cal-ib', 'data-act': 'wl-edit', 'aria-label': x.label + ' を直す', title: '直す', disabled: busy, onclick: function () {
-                form = { mode: 'time', id: x.id, type: x.type, label: x.type === 'other' ? x.label : '', from: a, to: b }; fill();
-              } }, UI.icon('edit')) : null,
+              UI.icon(WL_ICON[wlKind(x)]), h('span', { class: 'cal-wl-row-t' }, x.label), h('span', { class: 'cal-wl-row-s' }, x.allDay ? '終日' : NC.wlRange({ a: a, b: b })),
+              // 終日の記録（前の作りや Google カレンダーで入れた物）も直せる。直すと 9:00〜18:00 から時間を決める
+              h('button', { type: 'button', class: 'cal-ib', 'data-act': 'wl-edit', 'aria-label': x.label + ' を直す', title: x.allDay ? '時間にする' : '直す', disabled: busy, onclick: function () {
+                form = { mode: 'time', id: x.id, type: x.type, label: x.type === 'other' ? x.label : '', from: x.allDay ? 540 : a, to: x.allDay ? 1080 : b }; fill();
+              } }, UI.icon('edit')),
               h('button', { type: 'button', class: 'cal-ib', 'data-act': 'wl-del', 'aria-label': x.label + ' を消す', title: '消す', disabled: busy, onclick: function () { remove(x); } }, UI.icon('trash')));
           });
-        }
-        function otherForm() {
-          var inp = h('input', { type: 'text', class: 'cal-wl-name', 'data-f': 'wlLabel', maxlength: String(NC.WL_LABEL_MAX), placeholder: '場所の名前（例: 現場・大阪）', value: form.label || '',
-            oninput: function (e) { form.label = e.target.value; }, onkeydown: function (e) { if (e.key === 'Enter') go1(); } });
-          function go1() { if (!String(form.label || '').trim()) { UI.toast('場所の名前を入れてください', true); return; } place({ allDay: true, type: 'other', label: form.label }); }
-          setTimeout(function () { try { inp.focus(); } catch (e) { /* 出ていなければ何もしない */ } }, 0);
-          return h('div', { class: 'cal-wl-form', 'data-wlform': 'other' }, inp,
-            h('button', { type: 'button', class: 'btn ghost small', onclick: function () { form = null; fill(); } }, 'やめる'),
-            h('button', { type: 'button', class: 'btn primary small', 'data-act': 'wl-other-save', disabled: busy, onclick: go1 }, '置く'));
         }
         function timeForm() {
           // 時刻の誤りは選んだ時に出す（選ぶたびに描き直すので）。名前は押した時に確かめる（打つたびには描き直さない）
           var msg = form.to - form.from >= 15 ? '' : '終わりは、始まりより 15 分以上あとにしてください。';
+          function go() {
+            if (busy || msg) return;
+            if (form.type === 'other' && !String(form.label || '').trim()) { UI.toast('「その他」には、場所の名前を入れてください', true); return; }
+            place({ id: form.id || '', allDay: false, from: form.from, to: form.to, type: form.type, label: form.type === 'other' ? form.label : '' });
+          }
+          var name = form.type === 'other' ? h('input', { type: 'text', class: 'cal-wl-name', 'data-f': 'wlLabel', maxlength: String(NC.WL_LABEL_MAX), placeholder: '場所の名前（例: 現場・大阪）', value: form.label || '',
+            oninput: function (e) { form.label = e.target.value; }, onkeydown: function (e) { if (e.key === 'Enter') go(); } }) : null;
+          // 「その他」を押して開いた時だけ、名前の欄に入る（時刻を選び直して描き直す時は、選んでいる所から動かさない）
+          if (name && form.focusName) { form.focusName = false; setTimeout(function () { try { name.focus(); } catch (e) { /* 出ていなければ何もしない */ } }, 0); }
           return h('div', { class: 'cal-wl-form', 'data-wlform': 'time' },
-            typeButtons(form.type, function (k) { form.type = k; fill(); }),
-            form.type === 'other' ? h('input', { type: 'text', class: 'cal-wl-name', 'data-f': 'wlLabel', maxlength: String(NC.WL_LABEL_MAX), placeholder: '場所の名前', value: form.label || '', oninput: function (e) { form.label = e.target.value; } }) : null,
+            typeButtons(form.type, function (k) { form.type = k; form.focusName = k === 'other' && !form.label; fill(); }),
+            name,
             h('div', { class: 'cal-trow' }, wlTimeSelect(form.from, false, 'wlFrom', function (m) { var len = form.to - form.from; form.from = m; if (form.to <= m) form.to = Math.min(1440, m + Math.max(15, len)); fill(); }),
               h('span', { class: 'cal-tsep' }, '〜'), wlTimeSelect(form.to, true, 'wlTo', function (m) { form.to = m; fill(); })),
             msg ? h('div', { class: 'cal-err' }, msg) : null,
             h('div', { class: 'cal-pop-actions' },
               h('button', { type: 'button', class: 'btn ghost small', onclick: function () { form = null; fill(); } }, 'やめる'),
-              h('button', { type: 'button', class: 'btn primary small', 'data-act': 'wl-time-save', disabled: busy || !!msg, onclick: function () {
-                if (form.type === 'other' && !String(form.label || '').trim()) { UI.toast('「その他」には、場所の名前を入れてください', true); return; }
-                place({ id: form.id || '', allDay: false, from: form.from, to: form.to, type: form.type, label: form.type === 'other' ? form.label : '' });
-              } }, form.id ? '直す' : '置く')));
+              h('button', { type: 'button', class: 'btn primary small', 'data-act': 'wl-time-save', disabled: busy || !!msg, onclick: go }, form.id ? '直す' : '置く')));
         }
       }
       fill();

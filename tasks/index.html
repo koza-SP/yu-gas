@@ -125,7 +125,8 @@ form.add .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 form.add .acts { display: flex; justify-content: flex-end; gap: 8px; }
 .foot { margin-top: 16px; font-size: 12px; color: var(--faint); display: flex; flex-wrap: wrap; gap: 6px 14px; }
 .foot button { border: 0; background: none; color: var(--accent); cursor: pointer; padding: 0; font-size: 12px; }
-.toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: #323232; color: #fff; padding: 10px 16px; border-radius: 8px; box-shadow: var(--shadow); z-index: 50; max-width: calc(100vw - 32px); }
+.toasts { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 50; display: flex; flex-direction: column; align-items: center; gap: 8px; width: max-content; max-width: calc(100vw - 32px); pointer-events: none; }
+.toast { background: #323232; color: #fff; padding: 10px 16px; border-radius: 8px; box-shadow: var(--shadow); max-width: 100%; pointer-events: auto; }
 .toast.bad { background: var(--bad); }
 .spinner { width: 28px; height: 28px; border: 3px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; margin: 0 auto 10px; }
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -161,7 +162,7 @@ tr.row.dragging td { opacity: .4; }
 tr.row.drop-a td { box-shadow: inset 0 2px 0 var(--accent); }
 tr.row.drop-b td { box-shadow: inset 0 -2px 0 var(--accent); }
 .chip.show-n { display: none; }
-@media (max-width: 640px) { .chip.show-n { display: inline-flex; } .sortsel { order: 9; } }
+@media (max-width: 640px) { .chip.show-n { display: inline-flex; } }
 /* 番号（順番）の列: 押すと数を入れられる。見出しは押すと並べ替え */
 th.no-h, td.no { width: 1%; white-space: nowrap; text-align: center; }
 th.st-h { width: 1%; white-space: nowrap; }
@@ -178,6 +179,126 @@ td.no { padding-left: 8px; padding-right: 2px; }
 .fpanel { border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); padding: 10px 12px 2px; margin: 0 0 10px; }
 .fpanel .qrow .sp { flex: 1; }
 @media (max-width: 640px) { td.no { padding-left: 4px; padding-right: 0; } .nob { min-width: 26px; padding: 0 3px; } }
+
+/* ---- v6（2026-10-27）: 案内の欄・検索・並び替え・つまみ・右端の開くボタン・カテゴリとタグ・好きな色・マスタ */
+.vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.icon-btn.sm { width: 30px; height: 30px; }
+.icon-btn.sm svg { width: 16px; height: 16px; }
+.icon-btn:disabled { opacity: .4; cursor: default; }
+/* 上の段: 検索の欄 */
+.search { flex: 1; min-width: 0; max-width: 560px; display: flex; align-items: center; gap: 6px; margin: 0 6px; padding: 0 6px 0 12px; height: 40px; border-radius: 20px; background: var(--bg2); border: 1px solid transparent; }
+.search:focus-within { background: var(--card); border-color: var(--line); box-shadow: var(--shadow); }
+.search > svg { width: 20px; height: 20px; color: var(--muted); flex: none; }
+.search input { flex: 1; min-width: 0; border: 0; background: transparent; outline: none; font-size: 15px; padding: 0; }
+.search input::-webkit-search-cancel-button { display: none; }
+.search .qclear { visibility: hidden; }
+.search.has .qclear { visibility: visible; }
+.navbtn { display: none; }
+/* 骨組み: 左に案内の欄、右に一覧 */
+.shell { max-width: 1440px; margin: 0 auto; display: grid; grid-template-columns: 236px minmax(0, 1fr); align-items: start; }
+.shell .wrap { max-width: none; margin: 0; min-width: 0; }
+.side { position: sticky; top: 61px; max-height: calc(100vh - 61px); overflow: auto; padding: 12px 8px 40px 12px; }
+.side .sec { padding: 6px 0; border-bottom: 1px solid var(--line2); }
+.side .sec:last-child { border-bottom: 0; }
+.side .sh { display: flex; align-items: center; justify-content: space-between; padding: 6px 10px 4px; font-size: 12px; color: var(--faint); }
+.side .sh .linkish { font-size: 12px; }
+.ni { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 34px; padding: 5px 10px; border: 0; border-radius: 17px; background: transparent; color: var(--fg); cursor: pointer; text-align: left; text-decoration: none; font: inherit; }
+.ni:hover { background: var(--bg2); }
+.ni.on { background: var(--accent-bg); color: var(--accent); font-weight: 500; }
+.ni .n { margin-left: auto; font-size: 12px; color: var(--faint); font-weight: 400; }
+.ni.on .n { color: var(--accent); }
+.ni .ni-t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.ni-ic { width: 16px; text-align: center; flex: none; }
+.star-ic { color: #f4b400; }
+.ni-none { padding: 4px 10px 6px; font-size: 12px; color: var(--faint); }
+.side .links .ni { color: var(--accent); }
+.dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; flex: none; background: var(--c, transparent); border: 1px solid var(--c, var(--line)); }
+.navscrim { display: none; }
+/* 一覧の上の段 */
+.vtitle { font-size: 16px; font-weight: 500; white-space: nowrap; }
+.vtitle .n { margin-left: 8px; font-size: 12px; font-weight: 400; color: var(--faint); }
+.fchip.unf { display: inline-flex; align-items: center; gap: 4px; }
+.fchip.unf .x { font-size: 14px; line-height: 1; }
+.sortbox { display: inline-flex; align-items: center; gap: 4px; }
+.sortsel select { font-size: 13px; }
+.dirb { min-width: 0; }
+.draghint { font-size: 12px; color: var(--faint); margin: -4px 0 8px; }
+/* カテゴリ・タグの印 */
+.chip.cat { gap: 5px; background: var(--bg2); color: var(--fg); }
+.chip.tag { gap: 4px; background: transparent; border: 1px solid var(--line); color: var(--muted); }
+.chip .dot { width: 8px; height: 8px; }
+/* 番号の欄のつまみ（押したまま動かす。指でも動くように、触った時に画面が動かない） */
+.nocell { display: inline-flex; align-items: center; gap: 0; }
+.grip { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 30px; margin-left: -4px; color: var(--faint); cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; border-radius: 6px; }
+.grip svg { width: 16px; height: 16px; }
+.grip:hover { color: var(--fg); background: var(--bg2); }
+body.grabbing, body.grabbing * { cursor: grabbing !important; user-select: none; -webkit-user-select: none; }
+/* 右端の開くボタン（開いている時は ×） */
+th.acc-h, td.acc { width: 1%; padding-left: 0; padding-right: 8px; text-align: right; }
+.accb { width: 32px; height: 32px; border: 1px solid transparent; border-radius: 50%; background: transparent; color: var(--muted); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; padding: 0; }
+.accb svg { width: 20px; height: 20px; }
+.accb:hover { background: var(--bg2); border-color: var(--line); color: var(--fg); }
+.accb.on { color: var(--accent); background: var(--accent-bg); }
+tr.row.opened td { border-bottom-color: transparent; }
+tr.more td { padding: 0 10px 12px; border-bottom: 1px solid var(--line2); background: var(--card); cursor: default; }
+.more-in { margin-left: 28px; padding: 10px 12px; border-left: 3px solid var(--accent-bg); background: var(--bg2); border-radius: 0 8px 8px 0; }
+.mdesc { white-space: pre-wrap; overflow-wrap: anywhere; margin-bottom: 8px; }
+.mmemo { white-space: pre-wrap; overflow-wrap: anywhere; margin-bottom: 8px; color: var(--muted); }
+.mmemo .ml { display: inline-block; margin-right: 8px; font-size: 12px; color: var(--faint); }
+.faint { color: var(--faint); }
+dl.mgrid { grid-template-columns: 72px 1fr 72px 1fr; gap: 4px 10px; }
+dl.mgrid dd { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; white-space: normal; }
+.macts { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 10px; font-size: 13px; }
+/* 中身のカテゴリ・タグ（押すと付く・外れる） */
+.mchip { display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--line); border-radius: 16px; padding: 3px 10px; background: var(--card); cursor: pointer; font-size: 13px; color: var(--fg); }
+.mchip.on { border-color: var(--accent); background: var(--accent-bg); color: var(--accent); }
+.newin { display: inline-flex; align-items: center; gap: 6px; }
+.newin input { width: 160px; padding: 5px 8px; border: 1px solid var(--accent); border-radius: 8px; background: var(--bg); }
+.qrow .linkish { font-size: 13px; }
+/* 好きな色（色を選ぶ欄を丸に見せる） */
+.sw.pick { position: relative; display: inline-flex; overflow: hidden; background: conic-gradient(#ea4335, #fbbc04, #34a853, #4285f4, #a142f4, #ea4335); }
+.sw.pick.set { background: var(--c); }
+.sw.pick input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; border: 0; padding: 0; }
+/* タグとカテゴリ（マスタ） */
+.mtabs { display: flex; gap: 4px; margin: 0 0 10px; }
+.mlist { display: flex; flex-direction: column; gap: 6px; }
+.mrow { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.mrow .mname { flex: 1; min-width: 120px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); }
+.mrow .mname:focus { border-color: var(--accent); outline: none; }
+.mcount { font-size: 12px; color: var(--faint); min-width: 40px; text-align: right; }
+.madd { display: flex; align-items: center; gap: 6px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line2); }
+.madd input[name=name] { flex: 1; min-width: 0; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); }
+.morph { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--line2); display: flex; flex-direction: column; gap: 6px; }
+.morph .hint { margin: 0; }
+.empty.small { padding: 12px; }
+@media (max-width: 900px) {
+  .shell { display: block; }
+  .navbtn { display: inline-flex; margin-left: -6px; }
+  .side { position: fixed; top: 0; bottom: 0; left: 0; z-index: 18; width: min(300px, 86vw); max-height: none; background: var(--card); box-shadow: var(--shadow); transform: translateX(-105%); visibility: hidden; transition: transform .18s ease, visibility 0s linear .18s; padding-top: 16px; }
+  .nav-open .side { transform: none; visibility: visible; transition: transform .18s ease, visibility 0s; }   /* 閉じている時は Tab でも入らない */
+  .nav-open .navscrim { display: block; position: fixed; inset: 0; z-index: 17; background: rgba(0, 0, 0, .32); }
+  .search { margin: 0 2px; }
+}
+@media (max-width: 640px) {
+  .search input { font-size: 16px; }   /* iPhone で、押した時に画面が大きくならないように */
+  .search input::placeholder { font-size: 14px; }
+  dl.mgrid { grid-template-columns: 72px 1fr; }
+  .more-in { margin-left: 0; }
+  .vtitle { width: 100%; }
+  .sortbox { order: 9; }
+  .newin input { width: 130px; }
+}
+
+/* 中身の欄の中の、色を選ぶ丸と「新しく作る」の欄（ほかの入力の形を受けない） */
+form.add label.sw { display: inline-flex; margin: 0; }
+form.add .sw.pick input { display: block; margin: 0; padding: 0; border: 0; width: 100%; height: 100%; }
+form.add .newin input { display: inline-block; width: 160px; margin: 0; padding: 5px 8px; border: 1px solid var(--accent); }
+.newin .linkish { white-space: nowrap; }
+.chip.due-n { font-variant-numeric: tabular-nums; }
+@media (max-width: 640px) {
+  form.add .newin input { width: 130px; }
+  td.acc { padding-right: 4px; }
+}
 </style>
 </head>
 <body>
@@ -193,9 +314,12 @@ td.no { padding-left: 8px; padding-right: 2px; }
   var VIEWS = ['すべて', '今日まで', '今週', '期限なし', '完了', 'アーカイブ'];
   var URG = ['急ぎ', '必須', 'できれば', '後で'];
   var UR = { '急ぎ': 0, '必須': 1, 'できれば': 2, '後で': 3 };
-  var SORTS = ['おすすめ', '順番', '期限', '優先度', '緊急度', '状態', '会社', '名前', '新しい順'];
+  // 並び替え（Yu 2026-10-27「並び替え機能と…」）。初めは「順番」（つまみでつかんで動かせる並び）
+  var SORTS = ['順番', 'おすすめ', '期限', '優先度', '緊急度', '状態', '会社', 'カテゴリ', '星', '名前', '更新日', '作成日'];
+  var DESC_FIRST = { '更新日': true, '作成日': true };   // 選んだ時は新しい方から
+  var F_VER = 6;         // 覚えた形の版（6 = 並び替え・カテゴリ・タグを足した版）
   // 一覧の見出し（Yu 2026-10-27「フィルタ・並び替え機能も」）。押すとその列で並べ替え、もう一度押すと逆
-  var HEADS = [['順番', '順番', 'no-h'], ['状態', '状態', 'st-h'], ['タスク', '名前', ''], ['優先', '優先度', 'hide-n'], ['期限', '期限', '']];
+  var HEADS = [['順番', '順番', 'no-h'], ['状態', '状態', 'st-h'], ['タスク', '名前', ''], ['優先', '優先度', 'hide-n'], ['期限', '期限', 'hide-n']];
   // 絞り込み（何も選ばない組は全部）。「なし」は空の物
   var FSETS = [['st', '状態', ['未着手', '進行中', '要相談', '保留']], ['pr', '優先度', ['高', '中', '低', 'なし']], ['ug', '緊急度', ['急ぎ', '必須', 'できれば', '後で', 'なし']]];
   var SKIP = {};   // 「順に決める」で「あとで」にした物（この画面を開いている間だけ）
@@ -220,19 +344,36 @@ td.no { padding-left: 8px; padding-right: 2px; }
   var FOPEN = false;     // 絞り込みの欄を開いているか
   var POS = {}, POSN = 0;   // 未完了の番号（key → 1 から）。描くたびに作る
   var RETRY = null;      // 保存に失敗した直しの中身（読み直した後に、中身を開いて戻す）
+  var Q = '';            // 検索の言葉（Yu 2026-10-27「検索項目とか」。開き直したら空）
+  var OPEN = {};         // 右端のボタンで詳細を開いている行（key → true。この画面を開いている間だけ）
+  var NAV = false;       // スマホで案内の欄を開いているか
+  var MK = '';           // 中身の「＋ 新しく作る」の欄を開いている種類（category / tag）
+  var MKIND = 'category';   // 「タグとカテゴリ」で見ている種類
+  var PD = null;         // つまみでつかんでいる最中（pointer）
+  var JUST = 0;          // つまみで動かし終えた時刻（その直後の「押した」で中身を開かない）
   var F = loadF();
   var NOCO = '（会社なし）';
+  var NOCAT = '（カテゴリなし）';
+  var I_CHEV = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6z"/></svg>';
+  var I_MENU = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>';
+  var I_SEARCH = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14"/></svg>';
+  var I_GRIP = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M9 5a1.6 1.6 0 1 1 0 3.2A1.6 1.6 0 0 1 9 5m6 0a1.6 1.6 0 1 1 0 3.2A1.6 1.6 0 0 1 15 5m-6 5.4a1.6 1.6 0 1 1 0 3.2 1.6 1.6 0 0 1 0-3.2m6 0a1.6 1.6 0 1 1 0 3.2 1.6 1.6 0 0 1 0-3.2m-6 5.4a1.6 1.6 0 1 1 0 3.2 1.6 1.6 0 0 1 0-3.2m6 0a1.6 1.6 0 1 1 0 3.2 1.6 1.6 0 0 1 0-3.2"/></svg>';
 
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function loadF() {
-    var d = { view: 'すべて', off: {}, co: '', sort: 'おすすめ', dir: 'asc', fs: { st: [], pr: [], ug: [], star: false } };
+    var d = { v: F_VER, view: 'すべて', off: {}, co: '', cat: '', tag: '', sort: '順番', dir: 'asc', fs: { st: [], pr: [], ug: [], star: false } };
     try {
       var v = JSON.parse(localStorage.getItem('ws:tasks:f') || 'null');
       if (v && VIEWS.indexOf(v.view) >= 0) d.view = v.view;
       if (v && v.off && typeof v.off === 'object') d.off = v.off;
       if (v && typeof v.co === 'string') d.co = v.co;
+      if (v && typeof v.cat === 'string') d.cat = v.cat;
+      if (v && typeof v.tag === 'string') d.tag = v.tag;
       if (v && SORTS.indexOf(v.sort) >= 0) d.sort = v.sort;
       if (v && (v.dir === 'asc' || v.dir === 'desc')) d.dir = v.dir;
+      if (v && v.sort === '新しい順') { d.sort = '更新日'; d.dir = 'desc'; }   // 前の版の「新しい順」
+      // 前の版の初めの並び「おすすめ」は、1 回だけ「順番」にする（つかんで動かせる並びを初めに）
+      if (v && !(v.v >= F_VER) && d.sort === 'おすすめ') { d.sort = '順番'; d.dir = 'asc'; }
       if (v && v.fs && typeof v.fs === 'object') {
         FSETS.forEach(function (g) { if (Array.isArray(v.fs[g[0]])) d.fs[g[0]] = v.fs[g[0]].filter(function (x) { return g[2].indexOf(x) >= 0; }); });
         d.fs.star = v.fs.star === true;
@@ -241,6 +382,7 @@ td.no { padding-left: 8px; padding-right: 2px; }
     return d;
   }
   function keepF() { try { localStorage.setItem('ws:tasks:f', JSON.stringify(F)); } catch (e) { /* 覚えられなくても困らない */ } }
+  keepF();   // 前の版の形を、今の版の形で覚え直す（1 回だけの直しが毎回は起きないように）
   function addDays(d, n) { var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d); return m ? new Date(Date.UTC(+m[1], +m[2] - 1, +m[3] + n)).toISOString().slice(0, 10) : d; }
   function wdOf(d) { return (new Date(d + 'T00:00:00Z').getUTCDay() + 6) % 7; }   // 月曜 = 0
   function eomOf(d) { return new Date(Date.UTC(+d.slice(0, 4), +d.slice(5, 7), 0)).toISOString().slice(0, 10); }
@@ -254,9 +396,12 @@ td.no { padding-left: 8px; padding-right: 2px; }
   function keptNoDue(t) { return /^(なし|-|ー|―|—)$/.test(String(t.due_raw || '').trim()); }   // 「期限なしのまま」と決めた物（もう聞かない）
   function short(s) { s = String(s || ''); return s.length > 24 ? s.slice(0, 23) + '…' : s; }
   function toast(msg, bad) {
+    var box = document.querySelector('.toasts');
+    if (!box) { box = document.createElement('div'); box.className = 'toasts'; document.body.appendChild(box); }
     var t = document.createElement('div');
     t.className = 'toast' + (bad ? ' bad' : ''); t.setAttribute('role', 'status'); t.textContent = msg;
-    document.body.appendChild(t);
+    box.appendChild(t);
+    while (box.children.length > 3) box.removeChild(box.firstChild);   // 続けて押した時に、文字を重ねずに並べる（3 つまで）
     setTimeout(function () { t.remove(); }, bad ? 5000 : 3200);
   }
 
@@ -400,6 +545,12 @@ td.no { padding-left: 8px; padding-right: 2px; }
   // 並び（並べ方を選べる）。おすすめ = 期限のある物は期限の近い順（同じ日なら 緊急度 → 優先度 → 順番）、期限の無い物は順番のまま
   function ord(a, b) { var x = a.order == null ? 1e9 : a.order, y = b.order == null ? 1e9 : b.order; return x !== y ? x - y : String(a.name).localeCompare(String(b.name), 'ja'); }
   function rank(m, v) { return m[v] == null ? 9 : m[v]; }
+  var CR = null;   // カテゴリの並び（描くたびに作り直す）
+  function catRank(t) {
+    if (!CR) { CR = {}; namesOf('category').forEach(function (n, i) { CR[keyN(n)] = i; }); }
+    var i = CR[keyN(t.category)];
+    return i == null ? 1e6 : i;
+  }
   // 向きつきで比べる。空の物（期限なし・優先度なし など）は、どちらの向きでも下
   function by(av, bv, aEmpty, bEmpty) {
     if (aEmpty !== bEmpty) return aEmpty ? 1 : -1;
@@ -407,7 +558,7 @@ td.no { padding-left: 8px; padding-right: 2px; }
     return F.dir === 'desc' ? -r : r;
   }
   function cmp(a, b) {
-    if (F.sort === '新しい順' || (F.sort === 'おすすめ' && (F.view === '完了' || F.view === 'アーカイブ'))) return String(b.updated || '').localeCompare(String(a.updated || ''));
+    if (F.sort === 'おすすめ' && (F.view === '完了' || F.view === 'アーカイブ')) return String(b.updated || '').localeCompare(String(a.updated || ''));
     var ad = a.due || '9999', bd = b.due || '9999', r = 0;
     if (F.sort === '順番') r = by(a.order == null ? 1e9 : a.order, b.order == null ? 1e9 : b.order, a.order == null, b.order == null);
     else if (F.sort === '期限') r = by(ad, bd, !a.due, !b.due);
@@ -416,6 +567,10 @@ td.no { padding-left: 8px; padding-right: 2px; }
     else if (F.sort === '状態') r = by(rank(STO, a.status), rank(STO, b.status), false, false);
     else if (F.sort === '名前') { r = String(a.name).localeCompare(String(b.name), 'ja'); if (F.dir === 'desc') r = -r; }
     else if (F.sort === '会社') { r = a.company && !b.company ? -1 : !a.company && b.company ? 1 : String(a.company || '').localeCompare(String(b.company || ''), 'ja'); if (F.dir === 'desc' && a.company && b.company) r = -r; }
+    else if (F.sort === 'カテゴリ') r = by(catRank(a), catRank(b), !a.category, !b.category);   // マスタの順
+    else if (F.sort === '星') r = by(a.star ? 0 : 1, b.star ? 0 : 1, false, false);
+    else if (F.sort === '更新日') r = by(String(a.updated || ''), String(b.updated || ''), !a.updated, !b.updated);
+    else if (F.sort === '作成日') r = by(String(a.created || ''), String(b.created || ''), !a.created, !b.created);
     else {   // おすすめ
       r = ad < bd ? -1 : ad > bd ? 1 : 0;
       if (!r && a.due) r = rank(UR, a.urgency) - rank(UR, b.urgency) || rank(PR, a.priority) - rank(PR, b.priority);
@@ -442,6 +597,42 @@ td.no { padding-left: 8px; padding-right: 2px; }
   function isTeam(t) { return t.src !== 'mine'; }
   function coOf(t) { return t.company || NOCO; }
   function chipOf(t) { return isTeam(t) ? '<span class="chip team">' + esc(t.tab || '') + '</span>' : (t.company ? '<span class="chip mine">' + esc(t.company) + '</span>' : ''); }
+  // ---- カテゴリ・タグ・検索（Yu 2026-10-27「タグとかのマスタも欲しいし、検索項目とか、タスクカテゴリとかも会社所属以外で任意設定したい」）
+  function norm(s) { s = String(s == null ? '' : s); try { s = s.normalize('NFKC'); } catch (e) { /* 古いブラウザ */ } return s.toLowerCase(); }
+  function keyN(s) { return norm(s).replace(/\s+/g, ''); }   // 窓口の keyOf と同じ決め（全角半角・大小・空白は同じ物）
+  function catOf(t) { return t.category || NOCAT; }
+  function hasTag(t, g) { var k = keyN(g); return (t.tags || []).some(function (x) { return keyN(x) === k; }); }
+  function words() { return norm(Q).split(/\s+/).filter(Boolean); }
+  function matchQ(t, ws) {
+    var hay = norm([t.name, t.detail, t.memo, t.company, t.category, (t.tags || []).join(' '), t.no, t.origin].join('\n'));
+    return ws.every(function (w) { return hay.indexOf(w) >= 0; });
+  }
+  // 会社・カテゴリ・タグ・検索で絞る（skip の物は見ない = その欄の件数を数える時）
+  function passNav(t, skip, ws) {
+    if (skip !== 'co' && F.co && coOf(t) !== F.co) return false;
+    if (skip !== 'cat' && F.cat && catOf(t) !== F.cat) return false;
+    if (skip !== 'tag' && F.tag && !hasTag(t, F.tag)) return false;
+    return !(ws && ws.length) || matchQ(t, ws);
+  }
+  function mList(kind) { var m = D && D.master; return (m && m[kind === 'tag' ? 'tags' : 'categories']) || []; }
+  function mFind(kind, name) { var k = keyN(name); return mList(kind).filter(function (x) { return keyN(x.name) === k; })[0] || null; }
+  function mColor(kind, name) { var x = mFind(kind, name); return x ? x.color : ''; }
+  function dot(c) { return '<i class="dot"' + (c ? ' style="--c:' + esc(c) + '"' : '') + '></i>'; }
+  function catChip(t) { return t.category && !isTeam(t) ? '<span class="chip cat">' + dot(mColor('category', t.category)) + esc(t.category) + '</span>' : ''; }
+  function tagChips(t) { return (t.tags || []).map(function (g) { return '<span class="chip tag">' + dot(mColor('tag', g)) + '#' + esc(g) + '</span>'; }).join(''); }
+  // マスタの名前 ＋ タスクで使っているがマスタに無い名前（表で直接書いた物）。並びはマスタの順、無い物は後ろに名前の順
+  function namesOf(kind) {
+    var out = mList(kind).map(function (x) { return x.name; }), seen = {};
+    out.forEach(function (n) { seen[keyN(n)] = true; });
+    var extra = [];
+    ((D && D.tasks) || []).forEach(function (t) {
+      (kind === 'tag' ? (t.tags || []) : (t.category ? [t.category] : [])).forEach(function (n) { if (!seen[keyN(n)]) { seen[keyN(n)] = true; extra.push(n); } });
+    });
+    return out.concat(extra.sort(function (a, b) { return a.localeCompare(b, 'ja'); }));
+  }
+  function useCount(kind, name) {
+    return ((D && D.tasks) || []).filter(function (t) { return !isTeam(t) && (kind === 'tag' ? hasTag(t, name) : keyN(t.category) === keyN(name) && !!t.category); }).length;
+  }
   // 星（Yu の表のタスクだけ。押すとその場で付く・外れる。行を押した扱いにはしない）
   function starBtn(t) {
     if (isTeam(t)) return '';
@@ -450,10 +641,50 @@ td.no { padding-left: 8px; padding-right: 2px; }
 
   // ---- 画面
   function top() {
-    return '<header class="top"><div class="brand">' + ICON + '<span>タスク</span></div>' +
-      '<nav class="nav"><a href="' + esc(WS.calendar || '/calendar/') + '">カレンダー</a></nav><span class="sp"></span>' +
-      '<button class="icon-btn" type="button" data-reload title="読み直す" aria-label="読み直す"' + (LOADING ? ' disabled' : '') + '>' + I_RELOAD + '</button>' +
+    return '<header class="top"><button class="icon-btn navbtn" type="button" data-nav aria-label="案内を開く" aria-expanded="false">' + I_MENU + '</button>' +
+      '<div class="brand">' + ICON + '<span class="hide-n">タスク</span></div>' +
+      '<label class="search">' + I_SEARCH + '<input type="search" data-q placeholder="タスクを探す（名前・詳細・メモ・カテゴリ・タグ）" aria-label="タスクを探す" enterkeyhint="search" autocomplete="off">' +
+      '<button class="icon-btn sm qclear" type="button" data-qclear aria-label="探す言葉を消す">' + I_CLOSE + '</button></label>' +
+      '<button class="icon-btn" type="button" data-reload title="読み直す" aria-label="読み直す">' + I_RELOAD + '</button>' +
       '<button class="btn pri" type="button" data-new><span>＋ <span class="hide-n">タスクを</span>足す</span></button></header>';
+  }
+  // 案内の欄（Yu 2026-10-27「タスクページのナビゲーション充実させて」）: 表示・星つき・会社・カテゴリ・タグ（押すと絞り、もう一度で外す）・マスタを直す・ほかのページ
+  function side(all, today, ws) {
+    if (!D) return '';
+    var base = all.filter(function (t) { return !F.off[t.src] && passF(t); });
+    function cnt(list, v) { return list.filter(function (t) { return inView(t, v, today); }).length; }
+    var forView = base.filter(function (t) { return passNav(t, '', ws); });
+    var views = VIEWS.map(function (v) {
+      return '<button class="ni tab' + (F.view === v ? ' on' : '') + '" type="button" data-view="' + esc(v) + '">' + esc(v) + '<span class="n">' + cnt(forView, v) + '</span></button>';
+    }).join('');
+    var starN = all.filter(function (t) { return !F.off[t.src] && t.star && passNav(t, '', ws) && inView(t, F.view, today) && FSETS.every(function (g) { var on = F.fs[g[0]], v = g[0] === 'st' ? t.status : (g[0] === 'pr' ? t.priority : t.urgency) || 'なし'; return !on.length || on.indexOf(v) >= 0; }); }).length;
+    var star = '<button class="ni' + (F.fs.star ? ' on' : '') + '" type="button" data-fstar aria-pressed="' + (F.fs.star ? 'true' : 'false') + '"><span class="ni-ic star-ic">★</span>星つき<span class="n">' + starN + '</span></button>';
+    function facet(skip, keyOfT, names, cur, attr, color) {
+      var counts = {}, order = [];
+      base.filter(function (t) { return passNav(t, skip, ws) && inView(t, F.view, today); }).forEach(function (t) { keyOfT(t).forEach(function (k) { if (!(k in counts)) { counts[k] = 0; order.push(k); } counts[k]++; }); });
+      var list = names ? names.filter(function (n) { return n in counts || n === cur; }) : order;
+      if (cur && list.indexOf(cur) < 0) list.push(cur);
+      return list.map(function (n) {
+        return '<button class="ni' + (cur === n ? ' on' : '') + '" type="button" ' + attr + '="' + esc(n) + '" aria-pressed="' + (cur === n ? 'true' : 'false') + '">' + (color ? dot(color(n)) : '') + '<span class="ni-t">' + esc(n) + '</span><span class="n">' + (counts[n] || 0) + '</span></button>';
+      }).join('');
+    }
+    var cos = (function () {
+      var counts = {}, order = [];
+      base.filter(function (t) { return passNav(t, 'co', ws) && inView(t, F.view, today); }).forEach(function (t) { var c = coOf(t); if (!(c in counts)) { counts[c] = 0; order.push(c); } counts[c]++; });
+      order.sort(function (a, b) { return a === NOCO ? 1 : b === NOCO ? -1 : counts[b] - counts[a]; });
+      return facet('co', function (t) { return [coOf(t)]; }, order, F.co, 'data-co', null);
+    })();
+    var catNames = namesOf('category').concat([NOCAT]);
+    var cats = facet('cat', function (t) { return [catOf(t)]; }, catNames, F.cat, 'data-cat', function (n) { return n === NOCAT ? '' : mColor('category', n); });
+    var tags = facet('tag', function (t) { return t.tags || []; }, namesOf('tag'), F.tag, 'data-tag', function (n) { return mColor('tag', n); });
+    var m = srcOf('mine'), canMaster = !!(m && m.ok && D.master);
+    function head(title, kind) { return '<div class="sh">' + title + (kind && canMaster ? '<button class="linkish" type="button" data-master="' + kind + '">直す</button>' : '') + '</div>'; }
+    var none = '<div class="ni-none">まだありません' + (canMaster ? '（「直す」で作れます）' : '') + '</div>';
+    return '<div class="sec">' + views + star + '</div>' +
+      '<div class="sec">' + head('会社') + (cos || none) + '</div>' +
+      '<div class="sec">' + head('カテゴリ', 'category') + (namesOf('category').length ? cats : none) + '</div>' +
+      '<div class="sec">' + head('タグ', 'tag') + (tags || none) + '</div>' +
+      '<div class="sec links"><a class="ni" href="' + esc(WS.calendar || '/calendar/') + '">カレンダー</a></div>';   // 表を開く・マスタを直すは、一覧の上の行と見出しの「直す」に 1 つずつ
   }
   function notices() {
     var out = '';
@@ -470,26 +701,28 @@ td.no { padding-left: 8px; padding-right: 2px; }
     });
     return out;
   }
-  function bar(shown, today) {
-    var tabs = VIEWS.map(function (v) {
-      var n = shown.filter(function (t) { return inView(t, v, today); }).length;
-      return '<button class="tab' + (F.view === v ? ' on' : '') + '" type="button" data-view="' + esc(v) + '">' + esc(v) + '<span class="n">' + n + '</span></button>';
-    }).join('');
-    // 会社で絞る（今の形で出ている物の会社。押すとその会社だけ、もう一度押すと全部）
-    var counts = {}, order = [];
-    shown.filter(function (t) { return inView(t, F.view, today); }).forEach(function (t) { var c = coOf(t); if (!(c in counts)) { counts[c] = 0; order.push(c); } counts[c]++; });
-    order.sort(function (a, b) { return a === NOCO ? 1 : b === NOCO ? -1 : counts[b] - counts[a]; });
-    if (F.co && !(F.co in counts)) order.push(F.co);
-    var chips = order.length > 1 || F.co ? order.map(function (c) {
-      return '<button class="fchip' + (F.co === c ? ' on' : '') + '" type="button" data-co="' + esc(c) + '" aria-pressed="' + (F.co === c ? 'true' : 'false') + '">' + esc(c) + ' ' + (counts[c] || 0) + '</button>';
-    }).join('') : '';
-    var sortSel = '<label class="sortsel">並べ方 <select data-sort aria-label="並べ方">' + SORTS.map(function (x) { return '<option' + (x === F.sort ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select></label>';
+  function bar(rows, today) {
+    var on = [];
+    if (F.co) on.push(['co', '会社: ' + F.co]);
+    if (F.cat) on.push(['cat', 'カテゴリ: ' + F.cat]);
+    if (F.tag) on.push(['tag', 'タグ: #' + F.tag]);
+    if (F.fs.star) on.push(['star', '★ 星つき']);
+    FSETS.forEach(function (g) { F.fs[g[0]].forEach(function (v) { on.push(['fs:' + g[0] + ':' + v, g[1] + ': ' + v]); }); });
+    if (Q.trim()) on.push(['q', '「' + Q.trim() + '」']);
+    var chips = on.map(function (x) { return '<button class="fchip on unf" type="button" data-unf="' + esc(x[0]) + '" title="この絞り込みを外す">' + esc(x[1]) + '<span class="x" aria-hidden="true">×</span></button>'; }).join('') +
+      (on.length > 1 ? '<button class="linkish" type="button" data-unfall>全部外す</button>' : '');
+    var sortSel = '<span class="sortbox"><label class="sortsel">並び替え <select data-sort aria-label="並び替え">' + SORTS.map(function (x) { return '<option' + (x === F.sort ? ' selected' : '') + '>' + x + '</option>'; }).join('') + '</select></label>' +
+      '<button class="btn small dirb" type="button" data-dir title="向きを変える" aria-label="向き: ' + (F.dir === 'desc' ? '大きい順' : '小さい順') + '">' + (F.dir === 'desc' ? '↓ 大きい順' : '↑ 小さい順') + '</button></span>';
     var extra = F.view === '期限なし' ? '<button class="btn small" type="button" data-decide>期限を順に決める</button>'
       : F.view === '完了' ? '<button class="btn small" type="button" data-archivedone>完了をまとめてアーカイブ</button>' : '';
-    var fn = fCount(), fbtn = '<button class="btn small' + (fn ? ' on' : '') + '" type="button" data-fopen aria-expanded="' + (FOPEN ? 'true' : 'false') + '">絞り込み' + (fn ? ' ' + fn : '') + '</button>';
-    return '<div class="bar"><div class="tabs" role="tablist">' + tabs + '</div><span class="sp"></span>' + extra + fbtn + sortSel + '<div class="chips">' + chips + '</div></div>' + fpanel();
+    var fn = F.fs.st.length + F.fs.pr.length + F.fs.ug.length, fbtn = '<button class="btn small' + (fn ? ' on' : '') + '" type="button" data-fopen aria-expanded="' + (FOPEN ? 'true' : 'false') + '">絞り込み' + (fn ? ' ' + fn : '') + '</button>';
+    var anyOpen = rows.some(function (t) { return OPEN[t.key]; });
+    var acc = rows.length ? '<button class="btn small" type="button" data-accall>' + (anyOpen ? '詳細をすべて閉じる' : '詳細をすべて開く') + '</button>' : '';
+    var hint = !canDrag() && F.view !== '完了' && F.view !== 'アーカイブ' && rows.some(function (t) { return !isTeam(t); }) ? '<div class="draghint">つまみでつかんで動かすのは、並び替えが「順番」（↑ 小さい順）の時です</div>' : '';
+    return '<div class="bar"><div class="vtitle">' + esc(F.view) + '<span class="n">' + rows.length + ' 件</span></div>' + (chips ? '<div class="chips">' + chips + '</div>' : '') +
+      '<span class="sp"></span>' + extra + fbtn + sortSel + acc + '</div>' + fpanel() + hint;
   }
-  // 絞り込みの欄: 状態・優先度・緊急度・星。押すと付く・外れる（選んだ形は開き直しても残る）
+  // 絞り込みの欄: 状態・優先度・緊急度。押すと付く・外れる（選んだ形は開き直しても残る）。星は案内の欄
   function fpanel() {
     if (!FOPEN) return '';
     return '<div class="fpanel" role="group" aria-label="絞り込み">' + FSETS.map(function (g) {
@@ -497,13 +730,11 @@ td.no { padding-left: 8px; padding-right: 2px; }
         var on = F.fs[g[0]].indexOf(v) >= 0;
         return '<button class="fchip' + (on ? ' on' : '') + '" type="button" data-fg="' + g[0] + '" data-fv="' + esc(v) + '" aria-pressed="' + (on ? 'true' : 'false') + '">' + esc(v) + '</button>';
       }).join('') + '</div>';
-    }).join('') + '<div class="qrow"><span class="ql">星</span><button class="fchip' + (F.fs.star ? ' on' : '') + '" type="button" data-fstar aria-pressed="' + (F.fs.star ? 'true' : 'false') + '">★ 星つきだけ</button>' +
-      (fCount() ? '<span class="sp"></span><button class="linkish" type="button" data-fclear>絞り込みを全部外す</button>' : '') + '</div></div>';
+    }).join('') + (fCount() ? '<div class="qrow"><span class="sp"></span><button class="linkish" type="button" data-fclear>絞り込みを全部外す</button></div>' : '') + '</div>';
   }
   function meta() {
     if (!D) return '';
     var parts = (D.sources || []).filter(function (s) { return s.ok; }).map(function (s) { return esc(s.name) + ' <a href="' + esc(s.url) + '" target="_blank" rel="noopener">表を開く</a>'; });
-    if (F.co) parts.unshift('会社: ' + esc(F.co) + ' <button class="linkish" type="button" data-co="' + esc(F.co) + '">全部に戻す</button>');
     return '<div class="meta">' + parts.join(' · ') + (D.at ? ' · ' + esc(D.at.slice(11, 16)) + ' 時点' : '') + (LOADING ? ' · 読み直しています…' : '') + (PEND ? ' · <span data-saving>保存しています…</span>' : '') + '</div>';
   }
   function stCell(t) {
@@ -513,43 +744,62 @@ td.no { padding-left: 8px; padding-right: 2px; }
       opts.map(function (x) { return '<option' + (x === t.status ? ' selected' : '') + '>' + esc(x) + '</option>'; }).join('') + '</select>';
   }
   function dueCell(t, today) {
-    if (t.due) return '<td class="due' + (t.due < today && isOpen(t) ? ' over' : '') + '">' + md(t.due) + '</td>';
-    return '<td class="due raw">' + (rawDue(t) ? esc(short(rawDue(t))) : '—') + '</td>';
+    if (t.due) return '<td class="due hide-n' + (t.due < today && isOpen(t) ? ' over' : '') + '">' + md(t.due) + '</td>';
+    return '<td class="due raw hide-n">' + (rawDue(t) ? esc(short(rawDue(t))) : '—') + '</td>';
   }
   function table(rows, today) {
     if (!D) return ERR ? '<div class="empty">読み込めませんでした。</div>' : '<div class="empty"><div class="spinner"></div>読み込んでいます…</div>';
-    if (!rows.length) return '<div class="empty">' + (F.view === '完了' ? '完了したタスクはありません。' : F.view === 'アーカイブ' ? 'アーカイブした物はありません。' : 'ありません。') + '</div>';
+    if (!rows.length) return '<div class="empty">' + (Q.trim() ? '「' + esc(Q.trim()) + '」に合うタスクはありません。' : F.view === '完了' ? '完了したタスクはありません。' : F.view === 'アーカイブ' ? 'アーカイブした物はありません。' : 'ありません。') + '</div>';
     return '<table>' + head() + '<tbody>' + rows.map(function (t) {
-      var sub = [chipOf(t)];
-      if (t.category) sub.push('<span>' + esc(t.category) + '</span>');
+      var sub = [chipOf(t), catChip(t), tagChips(t)];
+      if (isTeam(t) && t.category) sub.push('<span>' + esc(t.category) + '</span>');
       if (t.memo && /^\[/.test(t.memo)) sub.push('<span>' + esc(t.memo.split('\n')[0].slice(0, 20)) + '</span>');
       if (!isTeam(t) && t.origin && t.origin !== '画面') sub.push('<span>' + esc(t.origin) + (/^(LINE|声)$/.test(t.origin) ? ' で頼んだ' : ' から') + '</span>');
       if (t.assignee) sub.push('<span>' + esc(short(t.assignee)) + '</span>');
       if (t.bad) sub.push('<span class="chip warn">' + esc(t.bad) + '</span>');
       if (t.urgency) sub.push('<span class="chip show-n ' + (t.urgency === '急ぎ' ? 'bad' : t.urgency === '必須' ? 'warn' : '') + '">' + esc(t.urgency) + '</span>');
-      var stripe = t.color ? ' style="box-shadow: inset 4px 0 0 ' + esc(t.color) + '"' : '';
-      var drag = canDrag() && !isTeam(t) && POS[t.key] && NOEDIT !== t.key ? ' draggable="true"' : '';
-      return '<tr class="row' + (SEL === t.key ? ' sel' : '') + (isOpen(t) ? '' : ' done') + '" data-key="' + esc(t.key) + '"' + drag + '>' + noCell(t, stripe) + '<td>' + stCell(t) + '</td>' +
+      if (t.due) sub.push('<span class="chip show-n due-n' + (t.due < today && isOpen(t) ? ' bad' : '') + '">期限 ' + md(t.due) + '</span>');
+      var stripe = t.color ? ' style="box-shadow: inset 4px 0 0 ' + esc(t.color) + '"' : '', open = !!OPEN[t.key];
+      return '<tr class="row' + (SEL === t.key ? ' sel' : '') + (isOpen(t) ? '' : ' done') + (open ? ' opened' : '') + '" data-key="' + esc(t.key) + '">' + noCell(t, stripe) + '<td>' + stCell(t) + '</td>' +
         '<td><div class="tcell">' + starBtn(t) + '<div class="tmain"><span class="ttl">' + esc(t.name) + '</span><span class="sub">' + sub.join('') + '</span></div></div></td>' +
         '<td class="hide-n">' + (t.priority ? '<span class="chip ' + (t.priority === '高' ? 'bad' : t.priority === '中' ? 'warn' : '') + '">' + esc(t.priority) + '</span>' : '') +
         (t.urgency ? ' <span class="chip ' + (t.urgency === '急ぎ' ? 'bad' : t.urgency === '必須' ? 'warn' : '') + '">' + esc(t.urgency) + '</span>' : '') + '</td>' +
-        dueCell(t, today) + '</tr>';
+        dueCell(t, today) +
+        // 右端: 押すとこの行の下に詳細が開く。開いている時は × で閉じる（Yu 2026-10-27「一覧一番右側にバツボタンアコーディオンボタン押したら詳細情報が見えるように」）
+        '<td class="acc"><button class="accb' + (open ? ' on' : '') + '" type="button" data-acc="' + esc(t.key) + '" aria-expanded="' + (open ? 'true' : 'false') + '" aria-label="' + (open ? '詳細を閉じる' : '詳細を開く') + '" title="' + (open ? '詳細を閉じる' : '詳細を開く') + '">' + (open ? I_CLOSE : I_CHEV) + '</button></td></tr>' +
+        (open ? '<tr class="more" data-more="' + esc(t.key) + '"><td colspan="6">' + moreBox(t, today) + '</td></tr>' : '');
     }).join('') + '</tbody></table>';
+  }
+  // 開いた行の詳細（読むだけ。直す時は「中身を開く」でポップアップ）
+  function moreBox(t, today) {
+    var due = t.due ? md(t.due) + (t.due < today && isOpen(t) ? '（過ぎています）' : '') : (rawDue(t) || 'なし');
+    var dl = [['会社', t.company], ['カテゴリ', t.category ? dot(mColor('category', t.category)) + esc(t.category) : ''], ['タグ', (t.tags || []).length ? tagChips(t) : ''],
+      ['期限', esc(due)], ['開始日', esc(t.start || '')], ['優先度', esc(t.priority || '')], ['緊急度', esc(t.urgency || '')], ['状態', esc(t.status || '')],
+      ['予定工数', esc(t.plan_h == null ? '' : String(t.plan_h))], ['実績工数', esc(t.actual_h == null ? '' : String(t.actual_h))], ['達成率', esc(t.rate == null ? '' : String(t.rate))],
+      ['元', esc((t.origin || '') + (t.ref ? '（' + t.ref + '）' : ''))], ['コード', esc(t.no || '')], ['作成', esc(t.created || '')], ['更新', esc(t.updated || '')], ['完了日', esc(t.done_at || '')]];
+    dl[0][1] = esc(dl[0][1] || '');
+    var links = (t.links || []).map(function (u, i) { return '<a href="' + esc(u) + '" target="_blank" rel="noopener">Slack ' + (i + 1) + '</a>'; }).join(' ');
+    return '<div class="more-in"><div class="mdesc">' + (t.detail ? esc(t.detail) : '<span class="faint">詳細はまだありません</span>') + '</div>' +
+      (t.memo ? '<div class="mmemo"><span class="ml">メモ</span>' + esc(t.memo) + '</div>' : '') +
+      '<dl class="dl mgrid">' + dl.filter(function (x) { return x[1]; }).map(function (x) { return '<dt>' + x[0] + '</dt><dd>' + x[1] + '</dd>'; }).join('') + (links ? '<dt>リンク</dt><dd>' + links + '</dd>' : '') + '</dl>' +
+      '<div class="macts"><button class="btn small" type="button" data-openpop="' + esc(t.key) + '">中身を開く（直す）</button>' + rowLink(t) + '</div></div>';
   }
   function head() {
     return '<thead><tr>' + HEADS.map(function (h) {
       var on = F.sort === h[1];
       return '<th class="' + h[2] + '"' + (on ? ' aria-sort="' + (F.dir === 'desc' ? 'descending' : 'ascending') + '"' : '') + '><button class="thb' + (on ? ' on' : '') + '" type="button" data-hsort="' + esc(h[1]) + '" title="' + esc(h[0]) + 'で並べ替え（もう一度押すと逆）">' +
         esc(h[0]) + (on ? '<span class="ar" aria-hidden="true">' + (F.dir === 'desc' ? '▼' : '▲') + '</span>' : '') + '</button></th>';
-    }).join('') + '</tr></thead>';
+    }).join('') + '<th class="acc-h"><span class="vh">詳細</span></th></tr></thead>';
   }
-  // 番号の欄。押すと数を入れられ、その位置へ動く（ほかは 1 から振り直す）。完了・アーカイブは —
+  // 番号の欄。押すと数を入れられ、その位置へ動く（ほかは 1 から振り直す）。完了・アーカイブは —。
+  // 「順番」で見ている時は左につまみ（押したまま動かすと並べ替え。マウスでも指でも）
   function noCell(t, stripe) {
     var n = POS[t.key];
+    var grip = canDrag() && !isTeam(t) && n && NOEDIT !== t.key ? '<span class="grip" data-grip="' + esc(t.key) + '" title="押したまま動かすと並べ替え" aria-hidden="true">' + I_GRIP + '</span>' : '';
     var inner = !n ? '<span class="nodash">—</span>' : NOEDIT === t.key
       ? '<input class="noin" type="number" min="1" max="' + POSN + '" step="1" inputmode="numeric" value="' + n + '" data-noin="' + esc(t.key) + '" aria-label="順番（入れた位置へ動きます）">'
       : '<button class="nob" type="button" data-noedit="' + esc(t.key) + '" title="押すと番号を直せます（その位置へ動きます）" aria-label="順番 ' + n + '（押すと直せます）">' + n + '</button>';
-    return '<td class="no"' + stripe + '>' + inner + '</td>';
+    return '<td class="no"' + stripe + '><div class="nocell">' + grip + inner + '</div></td>';
   }
   function rowLink(t) {
     var s = srcOf(t.src);
@@ -569,7 +819,7 @@ td.no { padding-left: 8px; padding-right: 2px; }
       '<label>詳細<textarea name="detail" rows="4" maxlength="2000" placeholder="何ができたら終わりか">' + esc(t.detail || '') + '</textarea></label>' +
       stBtns(t) +
       (t.bad ? '<div class="hint" style="color:var(--warn)">' + esc(t.bad) + '（表で T-012 のような形に直すと、カレンダーの予実とつながります）</div>' : '') +
-      quickRows(t, today) + colorRow(t) +
+      quickRows(t, today) + colorRow(t) + catRow(t) + tagRow(t) +
       '<div class="two"><label>会社<input name="company" list="coList" maxlength="40" value="' + esc(t.company || '') + '" placeholder="例: ぱんどら"></label>' +
       '<label>期限<input name="due" type="date" value="' + esc(t.due || '') + '"></label></div>' +
       '<div class="two"><label>順番<input name="order" inputmode="numeric" value="' + (POS[t.key] || '') + '" placeholder="入れた位置へ動く"></label><span></span></div>' +
@@ -577,14 +827,74 @@ td.no { padding-left: 8px; padding-right: 2px; }
       '<div class="acts save"><button class="btn small" type="button" data-move="up" title="1 つ上へ">↑ 上へ</button><button class="btn small" type="button" data-move="down" title="1 つ下へ">↓ 下へ</button>' +
       '<span class="sp"></span><button class="btn pri" type="submit"' + (BUSY[t.key] ? ' disabled' : '') + '>直す</button></div></form>' + coList();
   }
-  // 色を選ぶ（押すとすぐ塗る）。表で塗った色が並びに無ければ、それも 1 つ出す
+  // 色を選ぶ（押すとすぐ塗る）。丸 7 つ ＋ ほかのタスクで使っている色（表で塗った色も）＋ 好きな色（Yu 2026-10-27「色も任意で変えられるようにして」）
+  function usedColors() {
+    var seen = {}, out = [];
+    COLORS.forEach(function (c) { seen[c[0]] = true; });
+    ((D && D.tasks) || []).forEach(function (x) { var c = x.color; if (c && !seen[c]) { seen[c] = true; out.push(c); } });
+    return out.slice(0, 8);
+  }
   function colorRow(t) {
-    var cur = t.color || '', list = COLORS.some(function (c) { return c[0] === cur; }) ? COLORS : COLORS.concat([[cur, '表で塗った色']]);
+    var cur = t.color || '', list = COLORS.concat(usedColors().map(function (c) { return [c, c + '（ほかのタスクで使っている色）']; }));
+    if (cur && !list.some(function (c) { return c[0] === cur; })) list.push([cur, '表で塗った色']);
     return '<div class="qrow" data-colors><span class="ql">色</span>' + list.map(function (c) {
       var on = c[0] === cur;
       return '<button class="sw' + (on ? ' on' : '') + (c[0] ? '' : ' none') + '" type="button" data-color="' + esc(c[0]) + '" title="' + esc(c[1]) + '" aria-label="' + esc(c[1]) + '" aria-pressed="' + (on ? 'true' : 'false') + '"' +
         (c[0] ? ' style="--c:' + esc(c[0]) + '"' : '') + (BUSY[t.key] ? ' disabled' : '') + '></button>';
+    }).join('') + '<label class="sw pick" title="好きな色を選ぶ"><input type="color" data-colorpick value="' + esc(cur || '#4285f4') + '" aria-label="好きな色を選ぶ"' + (BUSY[t.key] ? ' disabled' : '') + '></label></div>';
+  }
+  // カテゴリ（1 つ。押すと付く、もう一度で外す）・タグ（いくつでも。押すと付く・外れる）。その場で新しく作れる
+  function catRow(t) {
+    var list = namesOf('category');
+    return '<div class="qrow" data-cats><span class="ql">カテゴリ</span>' + list.map(function (n) {
+      var on = !!t.category && keyN(n) === keyN(t.category);
+      return '<button class="mchip' + (on ? ' on' : '') + '" type="button" data-setcat="' + esc(n) + '" aria-pressed="' + (on ? 'true' : 'false') + '">' + dot(mColor('category', n)) + esc(n) + '</button>';
+    }).join('') + newIn('category') + '</div>';
+  }
+  function tagRow(t) {
+    var list = namesOf('tag');
+    return '<div class="qrow" data-tags><span class="ql">タグ</span>' + list.map(function (n) {
+      var on = hasTag(t, n);
+      return '<button class="mchip' + (on ? ' on' : '') + '" type="button" data-settag="' + esc(n) + '" aria-pressed="' + (on ? 'true' : 'false') + '">' + dot(mColor('tag', n)) + '#' + esc(n) + '</button>';
+    }).join('') + newIn('tag') + '</div>';
+  }
+  function newIn(kind) {
+    var m = srcOf('mine');
+    if (!(m && m.ok && D.master)) return '';
+    if (MK !== kind) return '<button class="linkish" type="button" data-mk="' + kind + '">＋ 新しく作る</button>';
+    return '<span class="newin"><input data-mkname="' + kind + '" maxlength="' + (kind === 'tag' ? 20 : 30) + '" placeholder="' + (kind === 'tag' ? '新しいタグ' : '新しいカテゴリ') + '" enterkeyhint="done" aria-label="' + (kind === 'tag' ? '新しいタグの名前' : '新しいカテゴリの名前') + '">' +
+      '<button class="btn small pri" type="button" data-mkgo="' + kind + '">作る</button><button class="linkish" type="button" data-mk="">やめる</button></span>';
+  }
+  // タグとカテゴリ（マスタ）を直す画面: 足す・名前を変える・色・並び・消す。表で直接書いた、マスタに無い名前も出す
+  function masterPop() {
+    var kind = MKIND, label = kind === 'tag' ? 'タグ' : 'カテゴリ', list = mList(kind), max = kind === 'tag' ? 20 : 30;
+    var tabs = '<div class="mtabs" role="tablist">' + [['category', 'カテゴリ'], ['tag', 'タグ']].map(function (x) {
+      return '<button class="tab' + (kind === x[0] ? ' on' : '') + '" type="button" role="tab" aria-selected="' + (kind === x[0] ? 'true' : 'false') + '" data-mkind="' + x[0] + '">' + x[1] + '<span class="n">' + mList(x[0]).length + '</span></button>';
     }).join('') + '</div>';
+    var rows = list.map(function (x, i) {
+      var n = useCount(kind, x.name), armed = ARM === 'mdel|' + kind + '|' + x.name;
+      return '<div class="mrow" data-mname="' + esc(x.name) + '">' +
+        '<label class="sw pick' + (x.color ? ' set' : '') + '"' + (x.color ? ' style="--c:' + esc(x.color) + '"' : '') + ' title="色を選ぶ"><input type="color" data-mcolor value="' + esc(x.color || '#9aa0a6') + '" aria-label="' + esc(x.name) + ' の色"></label>' +
+        '<input class="mname" data-mrename maxlength="' + max + '" value="' + esc(x.name) + '" aria-label="' + esc(x.name) + ' の名前（変えると、使っているタスクも変わります）">' +
+        '<span class="mcount">' + n + ' 件</span>' +
+        '<button class="linkish mnc" type="button" data-mnocolor' + (x.color ? '' : ' style="visibility:hidden" tabindex="-1" aria-hidden="true"') + '>色なし</button>' +
+        '<button class="icon-btn sm" type="button" data-mmove="up" aria-label="上へ" title="上へ"' + (i === 0 ? ' disabled' : '') + '>↑</button>' +
+        '<button class="icon-btn sm" type="button" data-mmove="down" aria-label="下へ" title="下へ"' + (i === list.length - 1 ? ' disabled' : '') + '>↓</button>' +
+        '<button class="btn small' + (armed ? ' danger' : '') + '" type="button" data-mdel>' + (armed ? 'もう一度押すと消す' + (n ? '（' + n + ' 件から外す）' : '') : '消す') + '</button></div>';
+    }).join('') || '<div class="empty small">まだありません。下で足してください。</div>';
+    var add = '<form class="madd" id="mAdd" autocomplete="off"><input name="name" maxlength="' + max + '" placeholder="新しい' + label + 'の名前" aria-label="新しい' + label + 'の名前" required>' +
+      '<label class="sw pick" title="色を選ぶ"><input type="color" name="color" value="#9fc5e8" aria-label="色"></label><button class="btn small pri" type="submit">足す</button></form>';
+    var orphans = namesOf(kind).filter(function (n) { return !mFind(kind, n); });
+    var orph = orphans.length ? '<div class="morph"><div class="hint">表で直接書いた、マスタに無い名前</div>' + orphans.map(function (n) {
+      var armed = ARM === 'mdel|' + kind + '|' + n, c = useCount(kind, n);
+      return '<div class="mrow" data-mname="' + esc(n) + '"><span class="mchip">' + (kind === 'tag' ? '#' : '') + esc(n) + '</span><span class="mcount">' + c + ' 件</span><span class="sp"></span>' +
+        '<button class="btn small" type="button" data-madopt>マスタに足す</button><button class="btn small' + (armed ? ' danger' : '') + '" type="button" data-mdel>' + (armed ? 'もう一度押すと ' + c + ' 件から外す' : 'タスクから外す') + '</button></div>';
+    }).join('') + '</div>' : '';
+    var url = D.master && D.master.url;
+    return '<aside class="pop" role="dialog" aria-modal="true" aria-label="タグとカテゴリ" data-for="__master__"><div class="dh"><div class="x"><h4>タグとカテゴリ</h4>' +
+      '<div class="hint">Yu さんの表の「マスタ」のタブに入ります。名前を変えると、使っているタスクも変わります。カテゴリは 1 件に 1 つ、タグはいくつでも</div></div>' +
+      '<button class="icon-btn" type="button" data-close aria-label="閉じる">' + I_CLOSE + '</button></div>' + tabs + '<div class="mlist">' + rows + '</div>' + add + orph +
+      (url ? '<div class="hint" style="margin-top:12px"><a href="' + esc(url) + '" target="_blank" rel="noopener">表の「マスタ」を開く</a></div>' : '') + '</aside>';
   }
   function stBtns(t) {
     return '<div class="stbtns">' + STATUSES.map(function (x) {
@@ -638,8 +948,10 @@ td.no { padding-left: 8px; padding-right: 2px; }
     var inner = m && m.ok
       ? '<form class="add" id="addForm" autocomplete="off"><label class="tname">タスク名<input name="name" required maxlength="200" placeholder="例: 税務署に電話"></label>' +
         '<label>詳細<textarea name="detail" rows="3" maxlength="2000" placeholder="何ができたら終わりか"></textarea></label>' +
-        '<div class="two"><label>会社<input name="company" list="coList" maxlength="40" placeholder="例: ぱんどら"></label><label>優先度<select name="priority"><option>中</option><option>高</option><option>低</option></select></label></div>' +
-        '<label>期限<input name="due" type="date"></label>' +
+        '<div class="two"><label>会社<input name="company" list="coList" maxlength="40" placeholder="例: ぱんどら" value="' + esc(F.co && F.co !== NOCO ? F.co : '') + '"></label><label>優先度<select name="priority"><option>中</option><option>高</option><option>低</option></select></label></div>' +
+        '<div class="two"><label>カテゴリ<select name="category"><option value="">なし</option>' + namesOf('category').map(function (n) { var on = F.cat && F.cat !== NOCAT && keyN(n) === keyN(F.cat); return '<option' + (on ? ' selected' : '') + '>' + esc(n) + '</option>'; }).join('') + '</select></label>' +
+        '<label>期限<input name="due" type="date"></label></div>' +
+        (F.tag ? '<input type="hidden" name="tags" value="' + esc(F.tag) + '"><div class="hint">タグ「#' + esc(F.tag) + '」で絞っているので、このタグも付けます</div>' : '') +
         '<div class="acts"><button class="btn" type="button" data-close>やめる</button><button class="btn pri" type="submit">足す</button></div></form>' + coList()
       : '<p class="hint">先に「Yu のタスク表」をつないでください（マイエージェントに頼む）。</p>';
     return '<aside class="pop" role="dialog" aria-modal="true" aria-label="タスクを足す" data-for="__new__"><div class="dh"><div class="x"><h4>タスクを足す</h4><div class="hint">Yu のタスク表の一番下に入ります</div></div>' +
@@ -653,31 +965,54 @@ td.no { padding-left: 8px; padding-right: 2px; }
       : '<span>マイエージェントとは、まだつながっていません（マイエージェントのカレンダーのページに、日程調整の合言葉つきの URL を 1 回貼るとつながり、LINE や声で頼んだタスクがここに入ります）</span>';
     return '<div class="foot">' + agent + (WS.mock ? '<span>練習用の表です（本物には書きません）</span>' : '<button type="button" data-logout>ログアウト</button>') + '</div>';
   }
+  // 画面の骨組み（上の段は 1 回だけ作る。検索の欄を描き直さないので、打っている途中でも欄が消えない）
+  function frame() {
+    if (root.querySelector('.app')) return;
+    root.innerHTML = '<div class="app">' + top() + '<div class="shell"><div class="navscrim" data-nav></div><nav class="side" aria-label="案内"></nav><main class="wrap"></main></div><div class="overlay"></div></div>';
+    var qi = root.querySelector('input[data-q]');
+    if (qi) qi.value = Q;
+  }
   function render() {
+    frame();
     // 足す画面の入力は、描き直しても残す（5 分おきの読み直しで消えないように）
     var f = document.getElementById('addForm'), keepV = null, focus = null;
-    if (f) { keepV = {}; ['name', 'company', 'due', 'priority', 'detail'].forEach(function (n) { if (f[n]) keepV[n] = f[n].value; }); if (document.activeElement && document.activeElement.form === f) focus = document.activeElement.name; }
+    if (f) { keepV = {}; ['name', 'company', 'due', 'priority', 'detail', 'category'].forEach(function (n) { if (f[n]) keepV[n] = f[n].value; }); if (document.activeElement && document.activeElement.form === f) focus = document.activeElement.name; }
     var ef = document.getElementById('editForm'), keepE = null;
     if (ef && ef.dataset.dirty === '1') { keepE = { key: ef.dataset.key }; ['name', 'detail', 'company', 'due', 'order', 'memo'].forEach(function (n) { if (ef[n]) keepE[n] = ef[n].value; }); }
+    var mk = root.querySelector('input[data-mkname]'), keepMk = mk ? mk.value : '';
+    var ma = document.getElementById('mAdd'), keepMa = ma ? ma.name.value : '', maFocus = ma && document.activeElement === ma.name;
     // ポップアップの中の位置も残す（色や期限を押して描き直しても、上に戻らない）
     var pe = root.querySelector('.pop'), keepTop = pe && pe.getAttribute('data-for') === String(SEL) ? pe.scrollTop : 0;
     var today = D ? D.today : new Date().toISOString().slice(0, 10);
-    var all = D ? D.tasks : [];
+    var all = D ? D.tasks : [], ws = words();
+    CR = null;
     POS = posMap(); POSN = Object.keys(POS).length;
     if (NOEDIT && !POS[NOEDIT]) NOEDIT = null;
-    var shown = all.filter(function (t) { return !F.off[t.src] && (!F.co || coOf(t) === F.co) && passF(t); });
+    var shown = all.filter(function (t) { return !F.off[t.src] && passNav(t, '', ws) && passF(t); });
     var rows = shown.filter(function (t) { return inView(t, F.view, today); }).sort(cmp);
-    var sel = SEL && SEL !== '__new__' && SEL !== '__decide__' ? all.filter(function (t) { return t.key === SEL; })[0] : null;
-    if (SEL && SEL !== '__new__' && SEL !== '__decide__' && D && !sel) SEL = null;
-    var open = SEL === '__new__' || SEL === '__decide__' || !!sel;
-    root.innerHTML = top() + '<main class="wrap">' + notices() + (D ? bar(shown, today) + meta() : '') +
-      '<div class="card">' + table(rows, today) + '</div>' + foot() + '</main>' +
-      (open ? '<div class="scrim" data-close></div>' + (SEL === '__new__' ? addForm() : SEL === '__decide__' ? decideCard(today) : pop(sel, today)) : '');
-    document.body.classList.toggle('modal', open);   // 開いている間は、後ろの一覧が動かない
+    var special = SEL === '__new__' || SEL === '__decide__' || SEL === '__master__';
+    var sel = SEL && !special ? all.filter(function (t) { return t.key === SEL; })[0] : null;
+    if (SEL && !special && D && !sel) SEL = null;
+    if (SEL === '__master__' && !(D && D.master)) SEL = null;
+    var open = special && !!SEL || !!sel;
+    var app = root.querySelector('.app'), sideEl = root.querySelector('.shell > .side'), main = root.querySelector('.shell > main.wrap'), over = root.querySelector('.app > .overlay');
+    app.classList.toggle('nav-open', NAV);
+    var nb = root.querySelector('.navbtn'); if (nb) nb.setAttribute('aria-expanded', NAV ? 'true' : 'false');
+    var rb = root.querySelector('.top [data-reload]'); if (rb) rb.disabled = LOADING;
+    var sq = root.querySelector('.search'); if (sq) sq.classList.toggle('has', !!Q);
+    sideEl.innerHTML = side(all, today, ws);
+    main.innerHTML = notices() + (D ? bar(rows, today) + meta() : '') + '<div class="card">' + table(rows, today) + '</div>' + foot();
+    over.innerHTML = open ? '<div class="scrim" data-close></div>' + (SEL === '__new__' ? addForm() : SEL === '__decide__' ? decideCard(today) : SEL === '__master__' ? masterPop() : pop(sel, today)) : '';
+    document.body.classList.toggle('modal', open || NAV);   // 開いている間は、後ろの一覧が動かない
     var pn = root.querySelector('.pop');
     if (pn && keepTop) pn.scrollTop = keepTop;
     var ni = root.querySelector('input[data-noin]');
     if (ni) { ni.focus(); ni.select(); }
+    mk = root.querySelector('input[data-mkname]');
+    if (mk) { mk.value = keepMk; mk.focus(); }
+    ma = document.getElementById('mAdd');
+    if (ma && keepMa) ma.name.value = keepMa;
+    if (ma && maFocus) ma.name.focus();
     // 保存に失敗した直し: 読み直した後に中身を開き、入れた物を戻す（打った文を失わない）
     ef = document.getElementById('editForm');
     if (RETRY && ef && ef.dataset.key === RETRY.key) { Object.keys(RETRY.v).forEach(function (n) { if (ef[n]) ef[n].value = RETRY.v[n]; }); ef.dataset.dirty = '1'; RETRY = null; }
@@ -710,6 +1045,7 @@ td.no { padding-left: 8px; padding-right: 2px; }
       return Backend.call(action, payload).then(function (d) {
         if (t && !--PT[t.key]) mergeTask(t, d && d.task);
         if (d && d.orders && PEND === 1) applyOrders(d.orders);
+        if (d && d.master && PEND === 1 && D) D.master = d.master;   // マスタは、後から押した物が無い時だけ窓口の中身で合わせる
         if (okMsg) toast(okMsg);
       }, function (e) {
         if (t) PT[t.key]--;
@@ -722,7 +1058,7 @@ td.no { padding-left: 8px; padding-right: 2px; }
       PEND--;
       if (PEND) return;
       if (FAILED || AFTER) { FAILED = false; AFTER = false; refresh(); }
-      else if (root.querySelector('.wrap')) render();
+      else if (root.querySelector('.wrap') && !PD) render();   // つまみでつかんでいる最中は描き直さない（離した時に描く）
     });
     if (root.querySelector('.wrap')) render();
   }
@@ -736,6 +1072,8 @@ td.no { padding-left: 8px; padding-right: 2px; }
     if ('urgency' in f) t.urgency = f.urgency;
     if ('star' in f) t.star = f.star;
     if ('color' in f) t.color = f.color;
+    if ('category' in f) t.category = f.category;
+    if ('tags' in f) t.tags = f.tags.slice();
     if ('due' in f) { if (f.due === 'なし') { t.due = ''; t.due_raw = 'なし'; } else { t.due = f.due; t.due_raw = ''; } }
     if ('order' in f && isOpen(t) && !t.archived) placeLocal(t, f.order === '' ? 1e9 : Number(f.order));
     t.updated = stampNow();
@@ -793,6 +1131,88 @@ td.no { padding-left: 8px; padding-right: 2px; }
     if (ef && ef.dataset.key === t.key && 'due' in fields && ef.due) ef.due.value = t.due || '';   // 直しかけの欄の期限も合わせる
     send(t, 'task.update', { no: t.no, fields: fields }, msg);
   }
+  // カテゴリを選ぶ（同じ物をもう一度押すと外す）・タグを付ける／外す
+  function setCat(t, name) {
+    if (!t || isTeam(t)) return;
+    var v = t.category && keyN(t.category) === keyN(name) ? '' : name;
+    quickUpdate(t, { category: v }, v ? '「' + short(t.name) + '」をカテゴリ「' + v + '」にしました' : 'カテゴリを外しました');
+  }
+  function toggleTag(t, name) {
+    if (!t || isTeam(t)) return;
+    var on = hasTag(t, name), next = on ? (t.tags || []).filter(function (g) { return keyN(g) !== keyN(name); }) : (t.tags || []).concat([name]);
+    if (next.length > 10) { toast('タグは 1 件に 10 個までです', true); return; }
+    quickUpdate(t, { tags: next }, on ? 'タグ「' + name + '」を外しました' : '「' + short(t.name) + '」にタグ「' + name + '」を付けました');
+  }
+  // ---- マスタ（タグとカテゴリ）。画面に先に入れて、裏でタスクの保存と同じ列に並べて送る
+  function mBad(kind, name, was) {
+    var max = kind === 'tag' ? 20 : 30;
+    if (!name) return '名前を入れてください';
+    if (name.length > max) return '名前は ' + max + ' 文字までです';
+    if (kind === 'tag' && /[,、，]/.test(name)) return 'タグの名前に「,」「、」は使えません';
+    var dup = mFind(kind, name);
+    if (dup && (!was || keyN(was) !== keyN(dup.name))) return '「' + dup.name + '」はもうあります';
+    return '';
+  }
+  function mineTasks() { return ((D && D.tasks) || []).filter(function (x) { return !isTeam(x); }); }
+  function addMaster(kind, name, color) {
+    name = String(name || '').replace(/\s+/g, ' ').trim();
+    var bad = mBad(kind, name, '');
+    if (bad) { toast(bad, true); return false; }
+    mList(kind).push({ name: name, color: color || '' });
+    send(null, 'task.masterSave', { kind: kind, name: name, color: color || '' }, (kind === 'tag' ? 'タグ' : 'カテゴリ') + '「' + name + '」を作りました');
+    return name;
+  }
+  function renameMaster(kind, was, name) {
+    name = String(name || '').replace(/\s+/g, ' ').trim();
+    var x = mFind(kind, was);
+    if (!x || name === x.name) { render(); return; }
+    var bad = mBad(kind, name, was);
+    if (bad) { toast(bad, true); render(); return; }
+    var n = 0;
+    mineTasks().forEach(function (t) {
+      if (kind === 'category') { if (t.category && keyN(t.category) === keyN(was)) { t.category = name; n++; } }
+      else if (hasTag(t, was)) { t.tags = t.tags.map(function (g) { return keyN(g) === keyN(was) ? name : g; }); n++; }
+    });
+    x.name = name;
+    if (kind === 'category' && F.cat && keyN(F.cat) === keyN(was)) { F.cat = name; keepF(); }
+    if (kind === 'tag' && F.tag && keyN(F.tag) === keyN(was)) { F.tag = name; keepF(); }
+    send(null, 'task.masterSave', { kind: kind, was: was, name: name }, '「' + was + '」を「' + name + '」にしました' + (n ? '（' + n + ' 件のタスクも）' : ''));
+  }
+  function colorMaster(kind, name, color) {
+    var x = mFind(kind, name);
+    if (!x || (x.color || '') === color) return;
+    x.color = color;
+    send(null, 'task.masterSave', { kind: kind, was: x.name, name: x.name, color: color }, color ? '色を変えました' : '色を外しました');
+  }
+  function removeMaster(kind, name) {
+    if (ARM !== 'mdel|' + kind + '|' + name) { ARM = 'mdel|' + kind + '|' + name; render(); return; }
+    ARM = '';
+    var list = mList(kind), x = mFind(kind, name), n = 0;
+    if (x) list.splice(list.indexOf(x), 1);
+    mineTasks().forEach(function (t) {
+      if (kind === 'category') { if (t.category && keyN(t.category) === keyN(name)) { t.category = ''; n++; } }
+      else if (hasTag(t, name)) { t.tags = t.tags.filter(function (g) { return keyN(g) !== keyN(name); }); n++; }
+    });
+    if (kind === 'category' && F.cat && keyN(F.cat) === keyN(name)) { F.cat = ''; keepF(); }
+    if (kind === 'tag' && F.tag && keyN(F.tag) === keyN(name)) { F.tag = ''; keepF(); }
+    send(null, 'task.masterRemove', { kind: kind, name: name }, '「' + name + '」を消しました' + (n ? '（' + n + ' 件のタスクから外しました）' : ''));
+  }
+  function moveMaster(kind, name, dir) {
+    var list = mList(kind), x = mFind(kind, name), i = list.indexOf(x), j = dir === 'up' ? i - 1 : i + 1;
+    if (i < 0 || j < 0 || j >= list.length) return;
+    list.splice(i, 1); list.splice(j, 0, x);
+    send(null, 'task.masterOrder', { kind: kind, names: list.map(function (m) { return m.name; }) });
+  }
+  // 中身の「＋ 新しく作る」: マスタに足して、そのままこのタスクに付ける
+  function makeAndSet(kind) {
+    var inp = root.querySelector('input[data-mkname="' + kind + '"]'), t = taskOf(SEL);
+    if (!inp || !t) return;
+    var name = addMaster(kind, inp.value, '');
+    if (!name) { inp.focus(); return; }
+    MK = '';
+    if (kind === 'category') { if (keyN(t.category) !== keyN(name)) quickUpdate(t, { category: name }); else render(); }
+    else if (!hasTag(t, name)) toggleTag(t, name); else render();
+  }
   // 番号を直す・つかんで動かす・↑↓: 未完了の中の pos 番目へ。ほかは 1 から振り直す（表の「順番」も同じ数）
   function placeTask(t, pos) {
     if (!t || BUSY[t.key] || !POS[t.key]) return;
@@ -844,6 +1264,8 @@ td.no { padding-left: 8px; padding-right: 2px; }
   }
   function addTask(f) {
     var p = { name: f.name.value.replace(/\s+/g, ' ').trim(), company: f.company ? f.company.value.trim() : '', due: f.due.value, priority: f.priority.value, detail: f.detail.value.trim(), origin: '画面' };
+    if (f.category && f.category.value) p.category = f.category.value;
+    if (f.tags && f.tags.value) p.tags = [f.tags.value];
     if (!p.name) { f.name.focus(); return; }
     var b = f.querySelector('[type=submit]');
     b.disabled = true; b.textContent = '足しています…';
@@ -865,24 +1287,60 @@ td.no { padding-left: 8px; padding-right: 2px; }
     });
   }
 
+  function closeNav() { if (NAV) { NAV = false; } }
+  function unf(k) {
+    if (k === 'co') F.co = ''; else if (k === 'cat') F.cat = ''; else if (k === 'tag') F.tag = ''; else if (k === 'star') F.fs.star = false;
+    else if (k === 'q') { Q = ''; var qi = root.querySelector('input[data-q]'); if (qi) qi.value = ''; }
+    else if (/^fs:/.test(k)) { var a = k.split(':'), l = F.fs[a[1]], i = l ? l.indexOf(a.slice(2).join(':')) : -1; if (i >= 0) l.splice(i, 1); }
+    keepF();
+  }
   document.addEventListener('click', function (e) {
-    var el = e.target.closest('button, a, tr.row, .scrim');
+    var el = e.target.closest('button, a, tr.row, .scrim, .navscrim');
     if (!el || !root.contains(el)) return;
     if (el.matches('[data-reload]')) return refresh();
-    if (el.matches('[data-new]')) { SEL = '__new__'; ARM = ''; render(); var i = document.querySelector('#addForm input[name=name]'); if (i) i.focus(); return; }
-    if (el.matches('[data-close]')) { SEL = null; ARM = ''; render(); return; }
-    if (el.matches('[data-view]')) { F.view = el.getAttribute('data-view'); keepF(); render(); return; }
+    if (el.matches('[data-nav]')) { NAV = !NAV; render(); return; }
+    if (el.matches('[data-qclear]')) { Q = ''; var qi = root.querySelector('input[data-q]'); if (qi) { qi.value = ''; qi.focus(); } render(); return; }
+    if (el.matches('[data-new]')) { SEL = '__new__'; ARM = ''; MK = ''; closeNav(); render(); var i = document.querySelector('#addForm input[name=name]'); if (i) i.focus(); return; }
+    if (el.matches('[data-close]')) { SEL = null; ARM = ''; MK = ''; render(); return; }
+    if (el.matches('[data-view]')) { F.view = el.getAttribute('data-view'); keepF(); closeNav(); render(); return; }
     if (el.matches('[data-src]')) { var k = el.getAttribute('data-src'); if (F.off[k]) delete F.off[k]; else F.off[k] = true; keepF(); render(); return; }
-    if (el.matches('[data-co]')) { var c = el.getAttribute('data-co'); F.co = F.co === c ? '' : c; keepF(); render(); return; }
+    if (el.matches('[data-co]')) { var c = el.getAttribute('data-co'); F.co = F.co === c ? '' : c; keepF(); closeNav(); render(); return; }
+    if (el.matches('[data-cat]')) { var cv0 = el.getAttribute('data-cat'); F.cat = F.cat === cv0 ? '' : cv0; keepF(); closeNav(); render(); return; }
+    if (el.matches('[data-tag]')) { var tv0 = el.getAttribute('data-tag'); F.tag = F.tag === tv0 ? '' : tv0; keepF(); closeNav(); render(); return; }
+    if (el.matches('[data-unf]')) { unf(el.getAttribute('data-unf')); render(); return; }
+    if (el.matches('[data-unfall]')) { F.co = ''; F.cat = ''; F.tag = ''; F.fs = { st: [], pr: [], ug: [], star: false }; Q = ''; var q2 = root.querySelector('input[data-q]'); if (q2) q2.value = ''; keepF(); render(); return; }
+    if (el.matches('[data-master]')) { MKIND = el.getAttribute('data-master') === 'tag' ? 'tag' : 'category'; SEL = '__master__'; ARM = ''; closeNav(); render(); return; }
+    if (el.matches('[data-mkind]')) { MKIND = el.getAttribute('data-mkind'); ARM = ''; render(); return; }
+    if (el.matches('[data-dir]')) { F.dir = F.dir === 'desc' ? 'asc' : 'desc'; keepF(); render(); return; }
+    if (el.matches('[data-acc]')) { var ak = el.getAttribute('data-acc'); if (OPEN[ak]) delete OPEN[ak]; else OPEN[ak] = true; render(); return; }
+    if (el.matches('[data-accall]')) {
+      var vis = Array.prototype.map.call(root.querySelectorAll('tr.row'), function (r) { return r.getAttribute('data-key'); });
+      if (vis.some(function (x) { return OPEN[x]; })) OPEN = {}; else vis.slice(0, 200).forEach(function (x) { OPEN[x] = true; });
+      render(); return;
+    }
+    if (el.matches('[data-openpop]')) { SEL = el.getAttribute('data-openpop'); ARM = ''; MK = ''; NOEDIT = null; render(); return; }
     if (el.matches('[data-hsort]')) { var hs = el.getAttribute('data-hsort'); if (F.sort === hs) F.dir = F.dir === 'desc' ? 'asc' : 'desc'; else { F.sort = hs; F.dir = 'asc'; } keepF(); render(); return; }
     if (el.matches('[data-noedit]')) { NOEDIT = el.getAttribute('data-noedit'); render(); return; }
     if (el.matches('[data-fopen]')) { FOPEN = !FOPEN; render(); return; }
     if (el.matches('[data-fv]')) { var fl = F.fs[el.getAttribute('data-fg')], fv = el.getAttribute('data-fv'), fi = fl ? fl.indexOf(fv) : -1; if (!fl) return; if (fi >= 0) fl.splice(fi, 1); else fl.push(fv); keepF(); render(); return; }
-    if (el.matches('[data-fstar]')) { F.fs.star = !F.fs.star; keepF(); render(); return; }
+    if (el.matches('[data-fstar]')) { F.fs.star = !F.fs.star; keepF(); closeNav(); render(); return; }
     if (el.matches('[data-fclear]')) { F.fs = { st: [], pr: [], ug: [], star: false }; keepF(); render(); return; }
     if (el.matches('[data-move]')) return moveTask(taskOf(SEL), el.getAttribute('data-move'));
     if (el.matches('[data-star]')) { var sv = taskOf(el.getAttribute('data-star')); if (!sv) return; return quickUpdate(sv, { star: !sv.star }, sv.star ? '星を外しました' : '「' + short(sv.name) + '」に星を付けました'); }
+    // マスタの画面の行
+    var mr = el.closest('.mrow');
+    if (mr && SEL === '__master__') {
+      var mn = mr.getAttribute('data-mname');
+      if (el.matches('[data-mdel]')) return removeMaster(MKIND, mn);
+      if (el.matches('[data-mmove]')) return moveMaster(MKIND, mn, el.getAttribute('data-mmove'));
+      if (el.matches('[data-mnocolor]')) { colorMaster(MKIND, mn, ''); return; }
+      if (el.matches('[data-madopt]')) { addMaster(MKIND, mn, ''); return; }
+    }
     var cur = el.closest('.decide') ? taskOf(el.closest('.decide').getAttribute('data-key')) : taskOf(SEL);
+    if (el.matches('[data-mk]')) { MK = el.getAttribute('data-mk'); render(); return; }
+    if (el.matches('[data-mkgo]')) return makeAndSet(el.getAttribute('data-mkgo'));
+    if (el.matches('[data-setcat]')) return setCat(cur, el.getAttribute('data-setcat'));
+    if (el.matches('[data-settag]')) return toggleTag(cur, el.getAttribute('data-settag'));
     if (el.matches('[data-due]')) { var dv = el.getAttribute('data-due'); return quickUpdate(cur, { due: dv }, dv ? '「' + short(cur.name) + '」の期限を ' + md(dv) + ' にしました' : '期限なしにしました'); }
     if (el.matches('[data-pri]')) { var pv = el.getAttribute('data-pri'); return quickUpdate(cur, { priority: cur.priority === pv ? '' : pv }); }
     if (el.matches('[data-urg]')) { var uv = el.getAttribute('data-urg'); return quickUpdate(cur, { urgency: cur.urgency === uv ? '' : uv }); }
@@ -902,34 +1360,101 @@ td.no { padding-left: 8px; padding-right: 2px; }
       if (isTeam(t) && t.status === DONE && ARM !== t.key + '|' + st) { ARM = t.key + '|' + st; render(); return; }
       return setStatus(t, st, isTeam(t) && t.status === DONE);
     }
-    if (el.matches('tr.row')) { if (e.target.closest('select, a, input')) return; SEL = el.getAttribute('data-key'); ARM = ''; NOEDIT = null; render(); }
+    if (el.matches('tr.row')) {
+      if (e.target.closest('select, a, input, [data-grip]') || Date.now() - JUST < 400) return;   // つまみで動かした直後の「押した」では開かない
+      SEL = el.getAttribute('data-key'); ARM = ''; MK = ''; NOEDIT = null; render();
+    }
   });
   document.addEventListener('change', function (e) {
-    if (e.target.matches('select[data-sort]')) { F.sort = e.target.value; F.dir = 'asc'; keepF(); render(); return; }
-    var s = e.target.closest('select[data-st]');
+    var x = e.target;
+    if (x.matches('select[data-sort]')) { F.sort = x.value; F.dir = DESC_FIRST[F.sort] ? 'desc' : 'asc'; keepF(); render(); return; }
+    if (x.matches('input[data-colorpick]')) { var cur = taskOf(SEL), c = String(x.value || '').toLowerCase(); if (cur && /^#[0-9a-f]{6}$/.test(c) && c !== (cur.color || '')) quickUpdate(cur, { color: c }, '色を付けました'); return; }
+    if (x.matches('input[data-mcolor]')) { var r = x.closest('.mrow'); if (r) colorMaster(MKIND, r.getAttribute('data-mname'), String(x.value || '').toLowerCase()); return; }
+    if (x.matches('input[data-mrename]')) { var r2 = x.closest('.mrow'); if (r2) renameMaster(MKIND, r2.getAttribute('data-mname'), x.value); return; }
+    var s = x.closest('select[data-st]');
     if (s) setStatus(taskOf(s.getAttribute('data-st')), s.value, false);
   });
   document.addEventListener('submit', function (e) {
     if (e.target.id === 'addForm') { e.preventDefault(); addTask(e.target); }
     if (e.target.id === 'editForm') { e.preventDefault(); editTask(e.target); }
+    if (e.target.id === 'mAdd') { e.preventDefault(); var f = e.target; if (addMaster(MKIND, f.name.value, String(f.color.value || '').toLowerCase())) { f.name.value = ''; render(); var a = document.getElementById('mAdd'); if (a) a.name.focus(); } }
   });
-  document.addEventListener('input', function (e) { var f = e.target.form; if (f && f.id === 'editForm') f.dataset.dirty = '1'; });
-  document.addEventListener('dragstart', function (e) { var r = e.target.closest && e.target.closest('tr.row[draggable]'); if (!r) return; DRAG = r.getAttribute('data-key'); e.dataTransfer.effectAllowed = 'move'; try { e.dataTransfer.setData('text/plain', DRAG); } catch (x) { /* 古いブラウザ */ } r.classList.add('dragging'); });
-  document.addEventListener('dragover', function (e) { var r = e.target.closest && e.target.closest('tr.row[draggable]'); if (!r || !DRAG) return; e.preventDefault(); root.querySelectorAll('.drop-a, .drop-b').forEach(function (x) { x.classList.remove('drop-a', 'drop-b'); }); var b = r.getBoundingClientRect(); r.classList.add(e.clientY > b.top + b.height / 2 ? 'drop-b' : 'drop-a'); });
-  document.addEventListener('drop', function (e) { var r = e.target.closest && e.target.closest('tr.row[draggable]'); if (!r || !DRAG) return; e.preventDefault(); var after = r.classList.contains('drop-b'), key = DRAG; DRAG = null; if (r.getAttribute('data-key') !== key) dropOrder(key, r.getAttribute('data-key'), after); else render(); });
-  document.addEventListener('dragend', function () { DRAG = null; root.querySelectorAll('.drop-a, .drop-b, .dragging').forEach(function (x) { x.classList.remove('drop-a', 'drop-b', 'dragging'); }); });
+  // 検索: 打つたびに一覧を絞る（少し待ってから描く。欄そのものは描き直さない）
+  var QT = null;
+  document.addEventListener('input', function (e) {
+    var f = e.target.form; if (f && f.id === 'editForm') f.dataset.dirty = '1';
+    if (e.target.matches && e.target.matches('input[data-q]')) { Q = e.target.value; clearTimeout(QT); QT = setTimeout(render, 120); }
+  });
+  // つまみでつかんで動かす（Yu 2026-10-27「並び替え機能」。マウスでも指でも。iPhone の Safari でも動くように、ブラウザのドラッグではなく指の動きで作る）
+  function dropMarks() { root.querySelectorAll('.drop-a, .drop-b').forEach(function (x) { x.classList.remove('drop-a', 'drop-b'); }); }
+  function rowAt(x, y) {
+    var el = document.elementFromPoint(x, y);
+    if (!el || !el.closest) return null;
+    var r = el.closest('tr.row');
+    if (!r) { var m = el.closest('tr.more'); if (m) r = m.previousElementSibling; }   // 開いた詳細の上なら、その行
+    return r && r.matches('tr.row') ? r : null;
+  }
+  document.addEventListener('pointerdown', function (e) {
+    var g = e.target.closest && e.target.closest('[data-grip]');
+    if (!g || (e.button != null && e.button > 0) || !canDrag()) return;
+    var row = g.closest('tr.row');
+    if (!row) return;
+    e.preventDefault();
+    PD = { key: g.getAttribute('data-grip'), row: row, y: e.clientY, moved: false, id: e.pointerId, target: null, after: false };
+    try { g.setPointerCapture(e.pointerId); } catch (x) { /* 古いブラウザ */ }
+    row.classList.add('dragging'); document.body.classList.add('grabbing');
+  });
+  document.addEventListener('pointermove', function (e) {
+    if (!PD || e.pointerId !== PD.id) return;
+    e.preventDefault();
+    if (Math.abs(e.clientY - PD.y) > 4) PD.moved = true;
+    var r = rowAt(e.clientX, e.clientY);
+    dropMarks(); PD.target = null;
+    if (r && r !== PD.row && POS[r.getAttribute('data-key')]) {
+      var b = r.getBoundingClientRect(), after = e.clientY > b.top + b.height / 2;
+      r.classList.add(after ? 'drop-b' : 'drop-a'); PD.target = r.getAttribute('data-key'); PD.after = after;
+    }
+    if (e.clientY < 70) window.scrollBy(0, -14); else if (e.clientY > window.innerHeight - 70) window.scrollBy(0, 14);   // 端に来たら一覧を動かす
+  });
+  function endDrag(cancel) {
+    var d = PD; PD = null;
+    dropMarks(); root.querySelectorAll('.dragging').forEach(function (x) { x.classList.remove('dragging'); }); document.body.classList.remove('grabbing');
+    if (!d) return;
+    if (d.moved) JUST = Date.now();
+    if (!cancel && d.moved && d.target) dropOrder(d.key, d.target, d.after);
+  }
+  document.addEventListener('pointerup', function (e) { if (PD && e.pointerId === PD.id) endDrag(false); });
+  document.addEventListener('pointercancel', function (e) { if (PD && e.pointerId === PD.id) endDrag(true); });
   document.addEventListener('keydown', function (e) {
-    if (e.target.matches && e.target.matches('input[data-noin]')) {
-      if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); commitNo(e.target); }
+    var x = e.target;
+    if (x.matches && x.matches('input[data-noin]')) {
+      if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); commitNo(x); }
       else if (e.key === 'Escape') { e.preventDefault(); NOEDIT = null; render(); }
       return;
     }
-    if (e.key === 'Escape' && SEL && !e.isComposing) { SEL = null; ARM = ''; render(); }
+    if (x.matches && x.matches('input[data-mkname]')) {
+      if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); makeAndSet(x.getAttribute('data-mkname')); }
+      else if (e.key === 'Escape') { e.preventDefault(); MK = ''; render(); }
+      return;
+    }
+    if (x.matches && x.matches('input[data-mrename]') && e.key === 'Enter' && !e.isComposing) { e.preventDefault(); x.blur(); return; }
+    if (x.matches && x.matches('input[data-q]')) {
+      if (e.key === 'Escape' && !e.isComposing) { e.preventDefault(); if (Q) { Q = ''; x.value = ''; render(); } else x.blur(); }
+      return;
+    }
+    if (e.key === 'Escape' && PD) { endDrag(true); return; }
+    if (e.key === 'Escape' && NAV && !e.isComposing) { NAV = false; render(); return; }
+    if (e.key === 'Escape' && SEL && !e.isComposing) { SEL = null; ARM = ''; MK = ''; render(); return; }
+    // 「/」で検索の欄へ（何かを打っている時は除く）
+    if (e.key === '/' && !SEL && !(x.matches && x.matches('input, textarea, select, [contenteditable]'))) { var qi = root.querySelector('input[data-q]'); if (qi) { e.preventDefault(); qi.focus(); } }
   });
   document.addEventListener('focusout', function (e) { if (e.target.matches && e.target.matches('input[data-noin]')) commitNo(e.target); });
   // 開いている間は 5 分おきに、戻ってきた時は 1 分たっていれば読み直す（中身を開いている時・番号を直している時・保存を送っている間はしない）
-  setInterval(function () { if (document.visibilityState === 'visible' && D && !SEL && !NOEDIT && !PEND && !Object.keys(BUSY).length) refresh(); }, 5 * 60000);
+  setInterval(function () { if (document.visibilityState === 'visible' && D && !SEL && !NOEDIT && !PEND && !PD && !Object.keys(BUSY).length) refresh(); }, 5 * 60000);
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible' && D && !SEL && !NOEDIT && !PEND && Date.now() - LAST > 60000) refresh(); });
+
+  // スマホで案内の欄を開いたまま、広い画面になった時（横向き・窓を広げた）は閉じる
+  window.addEventListener('resize', function () { if (NAV && window.innerWidth > 900) { NAV = false; render(); } });
 
   function start() { refresh(); }
   if (WS.mock) start();
